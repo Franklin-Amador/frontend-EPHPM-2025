@@ -8,7 +8,6 @@ import {
   CLUSTER_INFO,
   type DepartmentData,
 } from "@/lib/departments-data"
-import GeoJSON from "geojson"
 
 interface HondurasMapProps {
   onSelectDepartment: (department: DepartmentData | null) => void
@@ -29,7 +28,8 @@ export default function HondurasMap({
   }, [])
 
   const styleFeature = useCallback(
-    (feature: GeoJSON.Feature | undefined) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (feature: any) => {
       const name = feature?.properties?.NAME_1
       const dept = name ? getDepartmentByName(name) : undefined
       const isSelected =
@@ -51,6 +51,8 @@ export default function HondurasMap({
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
 
+    let cancelled = false
+
     const map = L.map(containerRef.current, {
       center: [14.75, -86.25],
       zoom: 7,
@@ -69,13 +71,15 @@ export default function HondurasMap({
     fetch("/gadm41_HND_1.json")
       .then((res) => res.json())
       .then((geojson) => {
+        if (cancelled) return
+
         const layer = L.geoJSON(geojson, {
           style: styleFeature,
-          onEachFeature: (feature, layer) => {
+          onEachFeature: (feature, featureLayer) => {
             const name = feature.properties?.NAME_1
             const dept = name ? getDepartmentByName(name) : undefined
 
-            layer.on({
+            featureLayer.on({
               click: () => {
                 onSelectDepartment(dept ?? null)
               },
@@ -93,12 +97,14 @@ export default function HondurasMap({
               },
             })
 
-            if (name) {
-              layer.bindTooltip(name, {
-                sticky: true,
-                className: "map-tooltip",
-              })
-            }
+            const tooltipLabel = dept
+              ? `${name} - ${dept.depto}`
+              : `${name} (sin datos)`
+
+            featureLayer.bindTooltip(tooltipLabel, {
+              sticky: true,
+              className: "map-tooltip",
+            })
           },
         }).addTo(map)
 
@@ -106,6 +112,7 @@ export default function HondurasMap({
       })
 
     return () => {
+      cancelled = true
       map.remove()
       mapRef.current = null
     }

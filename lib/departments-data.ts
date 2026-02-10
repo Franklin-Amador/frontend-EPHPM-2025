@@ -279,10 +279,35 @@ export const departmentsData: DepartmentData[] = [
   },
 ]
 
+// Mapeo de nombres GeoJSON -> nombres CSV para los que no coinciden
+const GEOJSON_TO_CSV_NAME: Record<string, string> = {
+  "Cortés": "Cortes",
+  "Intibucá": "Intubucá",
+  "Islas de la Bahía": "",
+  "Gracias a Dios": "",
+}
+
+function normalize(str: string): string {
+  return str
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+}
+
 export function getDepartmentByName(name: string): DepartmentData | undefined {
-  const normalized = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+  // Primero, revisar si hay un mapeo explicito
+  const mapped = GEOJSON_TO_CSV_NAME[name]
+  if (mapped !== undefined) {
+    if (mapped === "") return undefined // Sin datos (Islas de la Bahia, Gracias a Dios)
+    return departmentsData.find((d) => d.depto === mapped)
+  }
+
+  // Buscar por nombre normalizado
+  const normalized = normalize(name)
   return departmentsData.find((d) => {
-    const dNormalized = d.depto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+    const dNormalized = normalize(d.depto)
     return dNormalized === normalized || dNormalized.includes(normalized) || normalized.includes(dNormalized)
   })
 }
