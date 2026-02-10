@@ -168,6 +168,15 @@ export default function HondurasMap({
         .leaflet-control-zoom a:hover {
           background: hsl(220 14% 96%) !important;
         }
+        .leaflet-interactive {
+          outline: none !important;
+        }
+        .leaflet-interactive:focus {
+          outline: none !important;
+        }
+        svg.leaflet-svg {
+          outline: none !important;
+        }
       `}</style>
     </div>
   )
