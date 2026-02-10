@@ -14,6 +14,7 @@ import {
   FEATURE_LABELS,
   CLUSTER_INFO,
   type DepartmentData,
+  getDisplayName,
 } from "@/lib/departments-data"
 import { Loader2, Send, RotateCcw, Sparkles } from "lucide-react"
 
@@ -125,7 +126,7 @@ export default function PredictionForm({
               className="text-xs bg-transparent"
             >
               <Sparkles className="mr-1 h-3 w-3" />
-              Usar {selectedDepartment.depto}
+              Usar {getDisplayName(selectedDepartment)}
             </Button>
           )}
         </div>

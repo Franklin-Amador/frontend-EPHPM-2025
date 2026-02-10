@@ -10,6 +10,7 @@ import {
   CLUSTER_INFO,
   FEATURE_LABELS,
   formatValue,
+  getDisplayName,
 } from "@/lib/departments-data"
 import {
   MapPin,
@@ -60,7 +61,7 @@ export default function DepartmentPanel({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-card-foreground">
-            {department.depto}
+            {getDisplayName(department)}
           </CardTitle>
           <Badge
             style={{ backgroundColor: cluster.color }}

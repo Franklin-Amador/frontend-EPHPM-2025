@@ -146,7 +146,7 @@ export const departmentsData: DepartmentData[] = [
     cluster: 1,
   },
   {
-    depto: "Cortés",
+    depto: "Cortes",
     ymophg_mean: 18706.84,
     ymophg_median: 15000.0,
     anosest_mean: 7.87,
@@ -158,7 +158,7 @@ export const departmentsData: DepartmentData[] = [
     cluster: 0,
   },
   {
-    depto: "El Paraíso",
+    depto: "ElParaíso",
     ymophg_mean: 11696.92,
     ymophg_median: 7200.0,
     anosest_mean: 6.4,
@@ -170,7 +170,7 @@ export const departmentsData: DepartmentData[] = [
     cluster: 2,
   },
   {
-    depto: "Francisco Morazán",
+    depto: "FranciscoMorazán",
     ymophg_mean: 17473.82,
     ymophg_median: 13000.0,
     anosest_mean: 8.34,
@@ -182,7 +182,7 @@ export const departmentsData: DepartmentData[] = [
     cluster: 0,
   },
   {
-    depto: "Intibucá",
+    depto: "Intubucá",
     ymophg_mean: 12491.14,
     ymophg_median: 7200.0,
     anosest_mean: 6.48,
@@ -194,7 +194,7 @@ export const departmentsData: DepartmentData[] = [
     cluster: 1,
   },
   {
-    depto: "La Paz",
+    depto: "LaPaz",
     ymophg_mean: 8618.18,
     ymophg_median: 5200.0,
     anosest_mean: 6.44,
@@ -242,7 +242,7 @@ export const departmentsData: DepartmentData[] = [
     cluster: 1,
   },
   {
-    depto: "Santa Bárbara",
+    depto: "SantaBárbara",
     ymophg_mean: 11616.88,
     ymophg_median: 7850.0,
     anosest_mean: 6.18,
@@ -279,37 +279,43 @@ export const departmentsData: DepartmentData[] = [
   },
 ]
 
-// Mapeo de nombres GeoJSON -> nombres CSV para los que no coinciden
+// Mapeo de nombres GeoJSON (NAME_1) -> nombres CSV (depto)
 const GEOJSON_TO_CSV_NAME: Record<string, string> = {
+  "Atlántida": "Atlántida",
+  "Choluteca": "Choluteca",
+  "Colón": "Colón",
+  "Comayagua": "Comayagua",
+  "Copán": "Copán",
   "Cortés": "Cortes",
+  "El Paraíso": "ElParaíso",
+  "Francisco Morazán": "FranciscoMorazán",
   "Intibucá": "Intubucá",
+  "La Paz": "LaPaz",
+  "Lempira": "Lempira",
+  "Ocotepeque": "Ocotepeque",
+  "Olancho": "Olancho",
+  "Santa Bárbara": "SantaBárbara",
+  "Valle": "Valle",
+  "Yoro": "Yoro",
   "Islas de la Bahía": "",
   "Gracias a Dios": "",
 }
 
-function normalize(str: string): string {
-  return str
-    .trim()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/\s+/g, " ")
+// Mapeo inverso: CSV name -> GeoJSON name (nombre bonito para mostrar)
+const CSV_TO_DISPLAY: Record<string, string> = Object.fromEntries(
+  Object.entries(GEOJSON_TO_CSV_NAME)
+    .filter(([, csv]) => csv !== "")
+    .map(([geo, csv]) => [csv, geo])
+)
+
+export function getDisplayName(dept: DepartmentData): string {
+  return CSV_TO_DISPLAY[dept.depto] ?? dept.depto
 }
 
-export function getDepartmentByName(name: string): DepartmentData | undefined {
-  // Primero, revisar si hay un mapeo explicito
-  const mapped = GEOJSON_TO_CSV_NAME[name]
-  if (mapped !== undefined) {
-    if (mapped === "") return undefined // Sin datos (Islas de la Bahia, Gracias a Dios)
-    return departmentsData.find((d) => d.depto === mapped)
-  }
-
-  // Buscar por nombre normalizado
-  const normalized = normalize(name)
-  return departmentsData.find((d) => {
-    const dNormalized = normalize(d.depto)
-    return dNormalized === normalized || dNormalized.includes(normalized) || normalized.includes(dNormalized)
-  })
+export function getDepartmentByName(geoJsonName: string): DepartmentData | undefined {
+  const csvName = GEOJSON_TO_CSV_NAME[geoJsonName]
+  if (csvName === undefined || csvName === "") return undefined
+  return departmentsData.find((d) => d.depto === csvName)
 }
 
 export function formatValue(key: string, value: number): string {
