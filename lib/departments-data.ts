@@ -313,9 +313,23 @@ export function getDisplayName(dept: DepartmentData): string {
 }
 
 export function getDepartmentByName(geoJsonName: string): DepartmentData | undefined {
-  const csvName = GEOJSON_TO_CSV_NAME[geoJsonName]
-  if (csvName === undefined || csvName === "") return undefined
-  return departmentsData.find((d) => d.depto === csvName)
+  const trimmed = geoJsonName.trim().normalize("NFC")
+  // Try exact match first
+  const csvName = GEOJSON_TO_CSV_NAME[trimmed]
+  if (csvName !== undefined) {
+    if (csvName === "") return undefined
+    return departmentsData.find((d) => d.depto === csvName)
+  }
+  // Fallback: normalize both sides and compare without accents
+  const stripped = trimmed.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, "")
+  for (const [geoName, csvN] of Object.entries(GEOJSON_TO_CSV_NAME)) {
+    const geoStripped = geoName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, "")
+    if (geoStripped === stripped) {
+      if (csvN === "") return undefined
+      return departmentsData.find((d) => d.depto === csvN)
+    }
+  }
+  return undefined
 }
 
 export function formatValue(key: string, value: number): string {

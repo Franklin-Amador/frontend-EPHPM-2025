@@ -30,7 +30,8 @@ export default function HondurasMap({
   const styleFeature = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (feature: any) => {
-      const name = feature?.properties?.NAME_1
+      const rawName = feature?.properties?.NAME_1
+      const name = typeof rawName === "string" ? rawName.trim() : rawName
       const dept = name ? getDepartmentByName(name) : undefined
       const isSelected =
         selectedDepartment &&
@@ -76,8 +77,10 @@ export default function HondurasMap({
         const layer = L.geoJSON(geojson, {
           style: styleFeature,
           onEachFeature: (feature, featureLayer) => {
-            const name = feature.properties?.NAME_1
+            const rawName = feature.properties?.NAME_1
+            const name = typeof rawName === "string" ? rawName.trim() : rawName
             const dept = name ? getDepartmentByName(name) : undefined
+            console.log("[v0] GeoJSON NAME_1:", JSON.stringify(rawName), "-> trimmed:", JSON.stringify(name), "-> dept:", dept?.depto ?? "NOT FOUND")
 
             featureLayer.on({
               click: () => {
