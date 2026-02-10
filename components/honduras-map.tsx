@@ -5,6 +5,7 @@ import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 import {
   getDepartmentByName,
+  getDisplayName,
   CLUSTER_INFO,
   type DepartmentData,
 } from "@/lib/departments-data"
@@ -80,7 +81,6 @@ export default function HondurasMap({
             const rawName = feature.properties?.NAME_1
             const name = typeof rawName === "string" ? rawName.trim() : rawName
             const dept = name ? getDepartmentByName(name) : undefined
-            console.log("[v0] GeoJSON NAME_1:", JSON.stringify(rawName), "-> trimmed:", JSON.stringify(name), "-> dept:", dept?.depto ?? "NOT FOUND")
 
             featureLayer.on({
               click: () => {
@@ -101,7 +101,7 @@ export default function HondurasMap({
             })
 
             const tooltipLabel = dept
-              ? `${name} - ${dept.depto}`
+              ? getDisplayName(dept)
               : `${name} (sin datos)`
 
             featureLayer.bindTooltip(tooltipLabel, {
@@ -136,19 +136,37 @@ export default function HondurasMap({
           background: hsl(220 20% 10%);
           color: hsl(0 0% 98%);
           border: none;
-          border-radius: 6px;
-          padding: 6px 12px;
+          border-radius: 8px;
+          padding: 8px 14px;
           font-size: 13px;
-          font-weight: 500;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          font-weight: 600;
+          letter-spacing: 0.01em;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
         .map-tooltip::before {
           border-top-color: hsl(220 20% 10%) !important;
         }
+        .leaflet-control-zoom {
+          border: none !important;
+          border-radius: 10px !important;
+          overflow: hidden;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+        }
         .leaflet-control-zoom a {
           background: hsl(0 0% 100%) !important;
           color: hsl(220 20% 10%) !important;
-          border-color: hsl(220 13% 88%) !important;
+          border: none !important;
+          border-bottom: 1px solid hsl(220 13% 92%) !important;
+          width: 34px !important;
+          height: 34px !important;
+          line-height: 34px !important;
+          font-size: 16px !important;
+        }
+        .leaflet-control-zoom a:last-child {
+          border-bottom: none !important;
+        }
+        .leaflet-control-zoom a:hover {
+          background: hsl(220 14% 96%) !important;
         }
       `}</style>
     </div>

@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import {
   FEATURE_LABELS,
@@ -16,7 +15,7 @@ import {
   type DepartmentData,
   getDisplayName,
 } from "@/lib/departments-data"
-import { Loader2, Send, RotateCcw, Sparkles } from "lucide-react"
+import { Loader2, Send, RotateCcw, Sparkles, CheckCircle2 } from "lucide-react"
 
 const predictionSchema = z.object({
   ymophg_mean: z.number({ message: "Requerido" }),
@@ -111,33 +110,37 @@ export default function PredictionForm({
   }
 
   return (
-    <Card className="border-border bg-card text-card-foreground">
+    <Card className="border-border bg-card text-card-foreground shadow-sm">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-card-foreground">
-            Predictor de Cluster
-          </CardTitle>
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-lg font-bold text-card-foreground">
+              Predictor de Cluster
+            </CardTitle>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Ingresa indicadores para predecir el cluster.
+            </p>
+          </div>
           {selectedDepartment && (
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={fillFromDepartment}
-              className="text-xs bg-transparent"
+              className="text-xs bg-transparent shrink-0"
             >
               <Sparkles className="mr-1 h-3 w-3" />
-              Usar {getDisplayName(selectedDepartment)}
+              <span className="hidden sm:inline">
+                Usar {getDisplayName(selectedDepartment)}
+              </span>
+              <span className="sm:hidden">Auto</span>
             </Button>
           )}
         </div>
-        <p className="text-xs text-muted-foreground">
-          Ingresa los indicadores para predecir el cluster socioeconómico.
-        </p>
       </CardHeader>
-      <Separator />
-      <CardContent className="pt-4">
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
-          <div className="grid grid-cols-2 gap-3">
+      <CardContent className="pt-0">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-3">
             {FIELD_ORDER.map((key) => {
               const info = FEATURE_LABELS[key]
               const isRate = key.startsWith("tasa_")
@@ -145,7 +148,7 @@ export default function PredictionForm({
                 <div key={key} className="flex flex-col gap-1">
                   <Label
                     htmlFor={key}
-                    className="text-xs font-medium text-card-foreground"
+                    className="text-[11px] font-medium text-card-foreground leading-tight"
                   >
                     {info.label}
                   </Label>
@@ -154,7 +157,7 @@ export default function PredictionForm({
                     type="number"
                     step={isRate ? "0.0001" : "0.01"}
                     placeholder={isRate ? "0.00 - 1.00" : "0"}
-                    className="h-8 text-xs"
+                    className="h-9 text-xs tabular-nums"
                     {...register(key, { valueAsNumber: true })}
                   />
                   {errors[key] && (
@@ -167,7 +170,7 @@ export default function PredictionForm({
             })}
           </div>
 
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-2">
             <Button
               type="submit"
               disabled={loading}
@@ -179,13 +182,14 @@ export default function PredictionForm({
               ) : (
                 <Send className="mr-1.5 h-3.5 w-3.5" />
               )}
-              {loading ? "Prediciendo..." : "Predecir"}
+              {loading ? "Prediciendo..." : "Predecir Cluster"}
             </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={handleReset}
+              className="bg-transparent"
             >
               <RotateCcw className="h-3.5 w-3.5" />
             </Button>
@@ -193,15 +197,19 @@ export default function PredictionForm({
         </form>
 
         {error && (
-          <div className="mt-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="mt-4 rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
             {error}
           </div>
         )}
 
         {result && (
-          <div className="mt-4 rounded-lg border border-border p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-semibold text-card-foreground">
+          <div className="mt-4 rounded-xl border-2 p-4" style={{ borderColor: CLUSTER_INFO[result.cluster]?.color ?? "#6b7280" }}>
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2
+                className="h-5 w-5 shrink-0"
+                style={{ color: CLUSTER_INFO[result.cluster]?.color }}
+              />
+              <h3 className="text-sm font-bold text-card-foreground">
                 Resultado
               </h3>
               <Badge
@@ -209,7 +217,7 @@ export default function PredictionForm({
                   backgroundColor:
                     CLUSTER_INFO[result.cluster]?.color ?? "#6b7280",
                 }}
-                className="text-white text-xs font-medium"
+                className="text-white text-[10px] font-semibold ml-auto"
               >
                 Cluster {result.cluster}
               </Badge>
@@ -217,7 +225,7 @@ export default function PredictionForm({
             <p className="text-base font-bold text-card-foreground">
               {result.cluster_name}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
               {result.description}
             </p>
           </div>
