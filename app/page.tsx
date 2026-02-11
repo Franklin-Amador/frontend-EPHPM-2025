@@ -42,6 +42,7 @@ export default function HomePage() {
               <p className="hidden text-xs text-muted-foreground sm:block">
                 Dashboard de Indicadores por Departamento
               </p>
+              <span>Datos: Encuesta Permanente de Hogares (EPHPM)</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -56,7 +57,7 @@ export default function HomePage() {
       </header>
 
       {/* Main content */}
-      <main className="mx-auto flex w-full max-w-screen-2xl flex-1 flex-col gap-4 p-4 lg:flex-row lg:gap-6 lg:p-6">
+      <main className="mx-auto flex w-full max-w-screen-2xl flex-1 flex-col gap-4 p-4 lg:flex-row lg:gap-6 lg:p-6 mt-4">
         {/* Map section */}
         <section className="flex flex-col gap-3 lg:w-[62%] xl:w-2/3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -121,18 +122,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t border-border bg-card/50 px-4 py-3 sm:px-6">
         <div className="mx-auto flex max-w-screen-2xl flex-col items-center justify-between gap-1 text-xs text-muted-foreground sm:flex-row">
-          <span>Datos: Encuesta Permanente de Hogares (EPHPM)</span>
-          <span>
-            API:{" "}
-            <a
-              href="https://base-ephpm-julio-2025.vercel.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-primary hover:underline"
-            >
-              base-ephpm-julio-2025.vercel.app
-            </a>
-          </span>
+   
         </div>
       </footer>
     </div>

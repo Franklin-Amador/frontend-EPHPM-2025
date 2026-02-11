@@ -25,14 +25,14 @@ interface DepartmentPanelProps {
 }
 
 const METRIC_ICONS: Record<string, React.ReactNode> = {
-  ymophg_mean: <TrendingUp className="h-4 w-4" />,
-  ymophg_median: <TrendingUp className="h-4 w-4" />,
-  anosest_mean: <GraduationCap className="h-4 w-4" />,
-  edad_mean: <Users className="h-4 w-4" />,
-  totper_mean: <Users className="h-4 w-4" />,
-  tasa_ocupacion: <Briefcase className="h-4 w-4" />,
-  tasa_pobreza: <AlertTriangle className="h-4 w-4" />,
-  tasa_nbi: <AlertTriangle className="h-4 w-4" />,
+  ymophg_mean: <TrendingUp className="h-3.5 w-3.5" />,
+  ymophg_median: <TrendingUp className="h-3.5 w-3.5" />,
+  anosest_mean: <GraduationCap className="h-3.5 w-3.5" />,
+  edad_mean: <Users className="h-3.5 w-3.5" />,
+  totper_mean: <Users className="h-3.5 w-3.5" />,
+  tasa_ocupacion: <Briefcase className="h-3.5 w-3.5" />,
+  tasa_pobreza: <AlertTriangle className="h-3.5 w-3.5" />,
+  tasa_nbi: <AlertTriangle className="h-3.5 w-3.5" />,
 }
 
 export default function DepartmentPanel({ department }: DepartmentPanelProps) {
@@ -68,31 +68,31 @@ export default function DepartmentPanel({ department }: DepartmentPanelProps) {
 
   return (
     <Card className="border-border bg-card text-card-foreground shadow-sm">
-      <CardHeader className="pb-4">
+      <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-lg font-bold text-card-foreground truncate">
+            <CardTitle className="text-base font-bold text-card-foreground truncate">
               {getDisplayName(department)}
             </CardTitle>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-[11px] text-muted-foreground mt-1 leading-tight">
               {cluster.description}
             </p>
           </div>
           <Badge
             style={{ backgroundColor: cluster.color }}
-            className="text-white text-xs font-semibold shrink-0 shadow-sm"
+            className="text-white text-[10px] font-semibold shrink-0 shadow-sm px-2 py-0.5"
           >
             {cluster.name}
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4 pt-0">
+      <CardContent className="flex flex-col gap-3.5 pt-0">
         {/* Ingresos */}
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+          <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
             Ingresos
           </p>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
             {incomeMetrics.map(([key, info]) => {
               const value = department[key as keyof DepartmentData] as number
               return (
@@ -110,10 +110,10 @@ export default function DepartmentPanel({ department }: DepartmentPanelProps) {
 
         {/* Demografia */}
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+          <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
             {"Demografía & Educación"}
           </p>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+          <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             {demoMetrics.map(([key, info]) => {
               const value = department[key as keyof DepartmentData] as number
               return (
@@ -131,10 +131,10 @@ export default function DepartmentPanel({ department }: DepartmentPanelProps) {
 
         {/* Tasas */}
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+          <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
             Tasas
           </p>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
             {rateMetrics.map(([key, info]) => {
               const value = department[key as keyof DepartmentData] as number
               return (
@@ -172,17 +172,17 @@ function MetricCard({
   value: string
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg bg-muted/60 px-3 py-2.5 transition-colors hover:bg-muted">
+    <div className="flex items-center gap-2.5 rounded-lg bg-muted/60 px-2.5 py-2 transition-colors hover:bg-muted">
       <span className="text-muted-foreground shrink-0">{icon}</span>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-card-foreground truncate">
+        <p className="text-[11px] font-semibold text-card-foreground truncate leading-tight">
           {label}
         </p>
-        <p className="text-[10px] text-muted-foreground truncate">
+        <p className="text-[9px] text-muted-foreground truncate mt-0.5 leading-tight">
           {description}
         </p>
       </div>
-      <span className="text-sm font-bold text-card-foreground tabular-nums shrink-0">
+      <span className="text-xs font-bold text-card-foreground tabular-nums shrink-0">
         {value}
       </span>
     </div>
@@ -202,14 +202,14 @@ function RateCard({
 }) {
   const pct = Math.round(raw * 100)
   return (
-    <div className="flex flex-col items-center gap-1.5 rounded-lg bg-muted/60 px-3 py-3 transition-colors hover:bg-muted">
-      <p className="text-[10px] font-medium text-muted-foreground text-center">
+    <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/60 px-2.5 py-2.5 transition-colors hover:bg-muted">
+      <p className="text-[9px] font-semibold text-muted-foreground text-center leading-tight">
         {label}
       </p>
-      <span className="text-lg font-bold tabular-nums" style={{ color }}>
+      <span className="text-base font-bold tabular-nums" style={{ color }}>
         {value}
       </span>
-      <div className="w-full h-1.5 rounded-full bg-border overflow-hidden">
+      <div className="w-full h-1 rounded-full bg-border overflow-hidden mt-0.5">
         <div
           className="h-full rounded-full transition-all"
           style={{ width: `${pct}%`, backgroundColor: color }}

@@ -18,14 +18,38 @@ import {
 import { Loader2, Send, RotateCcw, Sparkles, CheckCircle2 } from "lucide-react"
 
 const predictionSchema = z.object({
-  ymophg_mean: z.number({ message: "Requerido" }),
-  ymophg_median: z.number({ message: "Requerido" }),
-  anosest_mean: z.number({ message: "Requerido" }),
-  edad_mean: z.number({ message: "Requerido" }),
-  totper_mean: z.number({ message: "Requerido" }),
-  tasa_ocupacion: z.number({ message: "Requerido" }).min(0).max(1),
-  tasa_pobreza: z.number({ message: "Requerido" }).min(0).max(1),
-  tasa_nbi: z.number({ message: "Requerido" }).min(0).max(1),
+  ymophg_mean: z
+    .number({ message: "Requerido" })
+    .min(0, "Debe ser mayor o igual a 0")
+    .max(100000, "Ingreso excede límite razonable"),
+  ymophg_median: z
+    .number({ message: "Requerido" })
+    .min(0, "Debe ser mayor o igual a 0")
+    .max(100000, "Ingreso excede límite razonable"),
+  anosest_mean: z
+    .number({ message: "Requerido" })
+    .min(0, "No puede ser negativo")
+    .max(20, "Máximo 20 años de estudio"),
+  edad_mean: z
+    .number({ message: "Requerido" })
+    .min(0, "No puede ser negativo")
+    .max(100, "Edad debe ser menor a 100"),
+  totper_mean: z
+    .number({ message: "Requerido" })
+    .min(1, "Mínimo 1 persona")
+    .max(20, "Máximo 20 personas por hogar"),
+  tasa_ocupacion: z
+    .number({ message: "Requerido" })
+    .min(0, "Debe estar entre 0 y 1")
+    .max(1, "Debe estar entre 0 y 1"),
+  tasa_pobreza: z
+    .number({ message: "Requerido" })
+    .min(0, "Debe estar entre 0 y 1")
+    .max(1, "Debe estar entre 0 y 1"),
+  tasa_nbi: z
+    .number({ message: "Requerido" })
+    .min(0, "Debe estar entre 0 y 1")
+    .max(1, "Debe estar entre 0 y 1"),
 })
 
 type PredictionInput = z.infer<typeof predictionSchema>
@@ -144,6 +168,43 @@ export default function PredictionForm({
             {FIELD_ORDER.map((key) => {
               const info = FEATURE_LABELS[key]
               const isRate = key.startsWith("tasa_")
+              
+              // Definir min, max y step según el campo
+              let min: number | undefined
+              let max: number | undefined
+              let step: string
+              let placeholder: string
+              
+              if (isRate) {
+                min = 0
+                max = 1
+                step = "0.0001"
+                placeholder = "0.00 - 1.00"
+              } else if (key === "ymophg_mean" || key === "ymophg_median") {
+                min = 0
+                max = 100000
+                step = "0.01"
+                placeholder = "0 - 100,000"
+              } else if (key === "anosest_mean") {
+                min = 0
+                max = 20
+                step = "0.01"
+                placeholder = "0 - 20 años"
+              } else if (key === "edad_mean") {
+                min = 0
+                max = 100
+                step = "0.01"
+                placeholder = "0 - 100 años"
+              } else if (key === "totper_mean") {
+                min = 1
+                max = 20
+                step = "0.01"
+                placeholder = "1 - 20 personas"
+              } else {
+                step = "0.01"
+                placeholder = "0"
+              }
+              
               return (
                 <div key={key} className="flex flex-col gap-1">
                   <Label
@@ -155,8 +216,10 @@ export default function PredictionForm({
                   <Input
                     id={key}
                     type="number"
-                    step={isRate ? "0.0001" : "0.01"}
-                    placeholder={isRate ? "0.00 - 1.00" : "0"}
+                    min={min}
+                    max={max}
+                    step={step}
+                    placeholder={placeholder}
                     className="h-9 text-xs tabular-nums"
                     {...register(key, { valueAsNumber: true })}
                   />
