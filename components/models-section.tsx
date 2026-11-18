@@ -17,13 +17,13 @@ const PIPELINE: [LucideIcon, string, string][] = [
 
 function Chip({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white backdrop-blur">{children}</span>
+    <span className="rounded-full border border-white/35 bg-black/25 px-3 py-1 text-xs font-medium text-white">{children}</span>
   )
 }
 
 function Stat({ figure, label }: { figure: string; label: string }) {
   return (
-    <div className="rounded-2xl bg-muted/70 p-4">
+    <div className="inset-tile rounded-2xl p-4">
       <p className="text-3xl font-bold tracking-tight">{figure}</p>
       <p className="mt-1 text-sm leading-snug text-muted-foreground">{label}</p>
     </div>
@@ -32,8 +32,8 @@ function Stat({ figure, label }: { figure: string; label: string }) {
 
 function ModelHeader({ kicker, title, chips }: { kicker: string; title: string; chips: string[] }) {
   return (
-    <div className="hero px-5 py-6 text-white sm:px-8 sm:py-8">
-      <p className="text-xs font-semibold uppercase tracking-widest text-white/70">{kicker}</p>
+    <div className="hero px-5 py-6 sm:px-8 sm:py-8">
+      <p className="text-xs font-semibold uppercase tracking-widest text-white/90">{kicker}</p>
       <h3 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">{title}</h3>
       <div className="mt-4 flex flex-wrap gap-2">
         {chips.map((c) => (
@@ -56,6 +56,7 @@ function ProfileChart({ feature }: { feature: string }) {
           <div key={c.id} className="grid grid-cols-[1fr_3.25rem] items-center gap-2">
             <span className="h-3 overflow-hidden rounded-full bg-muted">
               <span
+                data-mark
                 className="block h-full rounded-full"
                 style={{ width: `${(c.profile[feature] / max) * 100}%`, background: CLUSTER_COLORS[c.id] }}
                 title={`${c.name}: ${formatValue(indicator.format, c.profile[feature])}`}
@@ -83,12 +84,12 @@ export default function ModelsSection() {
   return (
     <section>
       <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Los modelos por dentro</h2>
-      <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+      <p className="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted-foreground">
         Detrás de este sitio hay dos modelos. Uno agrupa los departamentos en niveles; el otro estima qué tan
         probable es que un hogar sea pobre.
       </p>
 
-      <article className="mt-6 overflow-hidden rounded-[2rem] bg-card shadow-sm ring-1 ring-border/60">
+      <article className="mt-6 surface overflow-hidden rounded-[2rem]">
         <ModelHeader
           kicker="Modelo 1 · agrupamiento"
           title="Niveles de condiciones de vida"
@@ -135,20 +136,18 @@ export default function ModelsSection() {
           <div className="grid gap-8 lg:grid-cols-2">
             <div>
               <h4 className="text-base font-bold">Cuántos casos cayeron en cada nivel</h4>
-              <div className="mt-4 flex h-12 gap-0.5 overflow-hidden rounded-2xl">
+              {/* figures sit under the bar in normal ink: white on these fills was below 4.5:1 */}
+              <div className="mt-4 flex gap-0.5">
                 {CLUSTERS.map((c) => (
-                  <span
-                    key={c.id}
-                    className="flex items-center justify-center text-sm font-bold"
-                    style={{
-                      width: `${(c.profile.n / total) * 100}%`,
-                      background: CLUSTER_COLORS[c.id],
-                      color: c.id === 1 ? "#0b0b0b" : "#fff",
-                    }}
-                    title={`${c.name}: ${c.profile.n} de ${total}`}
-                  >
-                    {c.profile.n}
-                  </span>
+                  <div key={c.id} style={{ width: `${(c.profile.n / total) * 100}%` }}>
+                    <span
+                      data-mark
+                      className={cn("block h-10", c.id === 0 && "rounded-l-xl", c.id === CLUSTERS.length - 1 && "rounded-r-xl")}
+                      style={{ background: CLUSTER_COLORS[c.id] }}
+                      title={`${c.name}: ${c.profile.n} de ${total}`}
+                    />
+                    <span className="mt-1 block text-sm font-bold tabular-nums">{c.profile.n}</span>
+                  </div>
                 ))}
               </div>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
@@ -174,7 +173,7 @@ export default function ModelsSection() {
         </div>
       </article>
 
-      <article className="mt-6 overflow-hidden rounded-[2rem] bg-card shadow-sm ring-1 ring-border/60">
+      <article className="mt-6 surface overflow-hidden rounded-[2rem]">
         <ModelHeader
           kicker="Modelo 2 · predicción"
           title="¿Qué hace más probable que un hogar sea pobre?"
@@ -190,13 +189,18 @@ export default function ModelsSection() {
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
               {(
                 [
-                  ["Aprende", poverty.train_years, poverty.n_train, "bg-primary/10"],
-                  ["Se ajusta", poverty.valid_years, poverty.n_valid, "bg-primary/20"],
-                  ["Se examina", poverty.test_years, poverty.n_test, "bg-primary/30"],
+                  ["Aprende", poverty.train_years, poverty.n_train],
+                  ["Se ajusta", poverty.valid_years, poverty.n_valid],
+                  ["Se examina", poverty.test_years, poverty.n_test],
                 ] as const
-              ).map(([step, years, n, tone]) => (
-                <div key={step} className={cn("rounded-2xl p-4", tone)}>
-                  <p className="text-sm font-bold">{step}</p>
+              ).map(([step, years, n], i) => (
+                <div key={step} className="inset-tile rounded-2xl p-4">
+                  <p className="flex items-center gap-2 text-sm font-bold">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+                      {i + 1}
+                    </span>
+                    {step}
+                  </p>
                   <p className="mt-1 text-sm tabular-nums">
                     {years.length > 2 ? `${years[0]}–${years[years.length - 1]}` : years.join(" y ")}
                   </p>
@@ -249,6 +253,7 @@ export default function ModelsSection() {
                     <span className="relative block h-4" title={`Razón de momios: ${f.odds.toFixed(2)}`}>
                       <span className="absolute inset-y-0 left-1/2 w-px bg-border" />
                       <span
+                        data-mark
                         className={cn("absolute inset-y-0.5", up ? "left-1/2 rounded-r-full" : "right-1/2 rounded-l-full")}
                         style={{ width: `${width}%`, background: up ? "var(--level-2)" : "var(--level-0)" }}
                       />

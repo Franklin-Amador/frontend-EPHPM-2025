@@ -41,7 +41,7 @@ export default function HomePage() {
       <header className="sticky top-0 z-[1000] bg-background/85 backdrop-blur-lg">
         <div className="mx-auto max-w-5xl px-5 sm:px-8">
           <div className="flex h-14 items-center justify-between gap-3">
-            <p className="flex items-center gap-2 text-[15px] font-bold tracking-tight">
+            <p className="flex items-center gap-2 text-[0.9375rem] font-bold tracking-tight">
               <span className="h-2.5 w-2.5 rounded-full bg-primary" />
               Honduras en cifras
             </p>

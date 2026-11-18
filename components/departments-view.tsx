@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import dynamic from "next/dynamic"
 import { Pause, Play } from "lucide-react"
 import TrendChart from "@/components/trend-chart"
+import LevelBadge from "@/components/level-badge"
 import type { MapEntry } from "@/components/honduras-map"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
@@ -35,7 +36,7 @@ const HondurasMap = dynamic(() => import("@/components/honduras-map"), {
   loading: () => <div className="h-full w-full animate-pulse rounded-xl bg-muted" />,
 })
 
-const card = "rounded-3xl bg-card shadow-sm ring-1 ring-border/60"
+const card = "surface rounded-3xl"
 
 function YearPicker({ year, onChange }: { year: number; onChange: (y: number) => void }) {
   const active = useRef<HTMLButtonElement>(null)
@@ -75,7 +76,7 @@ function Legend({ metric }: { metric: string }) {
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
         {CLUSTERS.map((c) => (
           <span key={c.id} className="inline-flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full" style={{ background: CLUSTER_COLORS[c.id] }} />
+            <span data-mark className="h-2.5 w-2.5 rounded-full" style={{ background: CLUSTER_COLORS[c.id] }} />
             {c.name.replace("Condiciones ", "")}
           </span>
         ))}
@@ -155,7 +156,7 @@ export default function DepartmentsView() {
           <h1 className="text-balance text-[1.75rem] font-bold leading-tight tracking-tight sm:text-4xl">
             ¿Dónde es más difícil vivir?
           </h1>
-          <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted-foreground">
             No todo el país vive igual. Toca un departamento para conocer su situación, o reproduce los años para
             ver cómo cambia el mapa.
           </p>
@@ -195,7 +196,7 @@ export default function DepartmentsView() {
       <div className="grid gap-4 lg:grid-cols-5 lg:gap-5">
         <section className={cn(card, "p-4 sm:p-5 lg:col-span-3")}>
           <div className="relative h-[210px] sm:h-[380px]">
-            <span className="pointer-events-none absolute right-0 top-0 text-4xl font-bold tabular-nums text-foreground/10 sm:text-6xl">
+            <span aria-hidden="true" className="pointer-events-none absolute right-0 top-0 text-4xl font-bold tabular-nums text-foreground/10 sm:text-6xl">
               {year}
             </span>
             <HondurasMap entries={entries} selected={selected} onSelect={setSelected} />
@@ -227,17 +228,7 @@ export default function DepartmentsView() {
             <>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-2xl font-bold tracking-tight">{dept.name}</h2>
-                {selectedRow && selectedRow.cluster !== null && (
-                  <span
-                    className="rounded-full px-3 py-1 text-xs font-semibold"
-                    style={{
-                      background: CLUSTER_COLORS[selectedRow.cluster],
-                      color: selectedRow.cluster === 1 ? "#0b0b0b" : "#fff",
-                    }}
-                  >
-                    {CLUSTERS[selectedRow.cluster].name}
-                  </span>
-                )}
+                {selectedRow && selectedRow.cluster !== null && <LevelBadge level={selectedRow.cluster} />}
               </div>
 
               {!selectedRow || selectedRow.tasa_pobreza == null ? (
@@ -248,7 +239,7 @@ export default function DepartmentsView() {
                 </p>
               ) : (
                 <>
-                  <p className="mt-3 text-[15px] leading-relaxed">
+                  <p className="mt-3 text-[0.9375rem] leading-relaxed">
                     En {year}, <strong>{perHundred(selectedRow.tasa_pobreza)} hogares</strong> vivían en pobreza.
                   </p>
                   <div className="mt-3 space-y-2">
@@ -262,6 +253,7 @@ export default function DepartmentsView() {
                         <span className="truncate text-muted-foreground">{label}</span>
                         <span className="h-2.5 overflow-hidden rounded-full bg-muted">
                           <span
+                            data-mark
                             className="block h-full rounded-full"
                             style={{ width: `${(value ?? 0) * 100}%`, background: color }}
                           />
@@ -308,7 +300,7 @@ export default function DepartmentsView() {
                 />
               </div>
               {selectedRow && selectedRow.n_hogares < 150 && (
-                <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                   Muestra pequeña ({selectedRow.n_hogares} hogares): los cambios de un año a otro pueden ser ruido.
                 </p>
               )}
@@ -358,6 +350,7 @@ export default function DepartmentsView() {
                       <span className="tabular-nums text-muted-foreground">{formatValue(chartIndicator.format, v)}</span>
                       <span className="col-span-2 h-1.5 overflow-hidden rounded-full bg-muted">
                         <span
+                          data-mark
                           className="block h-full rounded-full"
                           style={{ width: `${(v / rankingMax) * 100}%`, background: colorFor(metric, r) }}
                         />
@@ -370,7 +363,7 @@ export default function DepartmentsView() {
           )
         ) : (
           <div className="mt-4">
-            <table className="w-full table-fixed border-separate border-spacing-[3px] text-[11px] sm:text-xs">
+            <table className="w-full table-fixed border-separate border-spacing-[3px] text-xs sm:text-xs">
               <thead>
                 <tr className="text-muted-foreground">
                   <th className="w-[5.5rem] sm:w-36" />
@@ -398,6 +391,7 @@ export default function DepartmentsView() {
                       return (
                         <td key={y} className="p-0">
                           <button
+                            data-mark
                             title={`${d.name}, ${y}: ${labelFor(metric, row)}`}
                             aria-label={`${d.name}, ${y}: ${labelFor(metric, row)}`}
                             onClick={() => {

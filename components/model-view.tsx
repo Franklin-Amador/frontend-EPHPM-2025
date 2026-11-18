@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
+import LevelBadge from "@/components/level-badge"
 import ModelsSection from "@/components/models-section"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
@@ -100,7 +101,7 @@ export default function ModelView() {
         <h1 className="text-balance text-[1.75rem] font-bold leading-tight tracking-tight sm:text-4xl">
           ¿De dónde salen estos números?
         </h1>
-        <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+        <p className="mt-3 max-w-2xl text-[0.9375rem] leading-relaxed text-muted-foreground">
           Cada año el Instituto Nacional de Estadística visita miles de hogares en todo el país y les pregunta
           cuántos son, en qué trabajan y cuánto ganan. Aquí se resumen {YEARS.length} de esas encuestas, de{" "}
           {YEARS[0]} a {LATEST_YEAR}.
@@ -111,7 +112,7 @@ export default function ModelView() {
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Palabras que usamos</h2>
         <dl className="mt-5 grid gap-4 sm:grid-cols-2">
           {GLOSSARY.map(([term, meaning]) => (
-            <div key={term} className="rounded-3xl bg-card p-5 shadow-sm ring-1 ring-border/60">
+            <div key={term} className="surface rounded-3xl p-5">
               <dt className="text-base font-bold">{term}</dt>
               <dd className="mt-1 text-sm leading-relaxed text-muted-foreground">{meaning}</dd>
             </div>
@@ -121,14 +122,14 @@ export default function ModelView() {
 
       <section>
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Los tres colores del mapa</h2>
-        <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+        <p className="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted-foreground">
           Un programa compara los departamentos en cada año y los reúne en tres grupos según qué tan parecida es su
           situación.
         </p>
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           {CLUSTERS.map((c) => (
-            <article key={c.id} className="overflow-hidden rounded-3xl bg-card shadow-sm ring-1 ring-border/60">
-              <div className="h-2" style={{ background: CLUSTER_COLORS[c.id] }} />
+            <article key={c.id} className="surface overflow-hidden rounded-3xl">
+              <div data-mark className="h-2" style={{ background: CLUSTER_COLORS[c.id] }} />
               <div className="p-5">
                 <h3 className="text-base font-bold">{c.name}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{LEVEL_TEXT[c.id]}</p>
@@ -148,7 +149,7 @@ export default function ModelView() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Pruébalo tú</h2>
-            <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
+            <p className="mt-2 max-w-xl text-[0.9375rem] leading-relaxed text-muted-foreground">
               Parte de un departamento, cambia sus números y mira en qué grupo quedaría.
             </p>
           </div>
@@ -171,7 +172,7 @@ export default function ModelView() {
           </Select>
         </div>
 
-        <div className="mt-5 rounded-3xl bg-card p-5 shadow-sm ring-1 ring-border/60 sm:p-7">
+        <div className="surface mt-5 rounded-3xl p-5 sm:p-7">
           <div className="grid gap-x-10 gap-y-5 md:grid-cols-2">
             {FEATURES.map((f) => {
               const [min, max, step] = RANGE[f]
@@ -208,11 +209,8 @@ export default function ModelView() {
               Ver en qué grupo queda
             </button>
             {result && (
-              <p
-                className="rounded-full px-4 py-2 text-sm font-semibold"
-                style={{ background: CLUSTER_COLORS[result.cluster], color: result.cluster === 1 ? "#0b0b0b" : "#fff" }}
-              >
-                {CLUSTERS[result.cluster].name}
+              <p role="status" data-result>
+                <LevelBadge level={result.cluster} className="px-4 py-2 text-sm" />
               </p>
             )}
             {error && <p className="text-sm text-muted-foreground">No se pudo consultar ahora ({error}).</p>}

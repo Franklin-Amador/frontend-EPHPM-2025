@@ -25,10 +25,10 @@ function Waffle({ extreme, poor }: { extreme: number; poor: number }) {
       {Array.from({ length: 100 }, (_, i) => (
         <span
           key={i}
+          data-mark
+          data-empty={i >= poor}
           className="waffle-cell aspect-square rounded-[3px] sm:rounded-[5px]"
-          style={{
-            background: i < extreme ? "var(--level-2)" : i < poor ? "var(--level-1)" : "hsl(var(--muted))",
-          }}
+          style={i < poor ? { background: i < extreme ? "var(--level-2)" : "var(--level-1)" } : undefined}
         />
       ))}
     </div>
@@ -49,12 +49,12 @@ function Fact({
   detail: string
 }) {
   return (
-    <article className="flex flex-col gap-3 rounded-3xl bg-card p-5 shadow-sm ring-1 ring-border/60 transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+    <article className="surface flex flex-col gap-3 rounded-3xl p-5">
       <span className={cn("flex h-12 w-12 items-center justify-center rounded-2xl", tint)}>
         <Icon className="h-5 w-5" />
       </span>
       <p className="text-3xl font-bold tracking-tight">{figure}</p>
-      <p className="text-[15px] font-medium leading-snug">{title}</p>
+      <p className="text-[0.9375rem] font-medium leading-snug">{title}</p>
       <p className="text-sm leading-relaxed text-muted-foreground">{detail}</p>
     </article>
   )
@@ -96,18 +96,18 @@ export default function NationalView() {
       <section className="hero -mx-5 overflow-hidden px-5 py-8 text-white sm:mx-0 sm:rounded-[2rem] sm:px-10 sm:py-12">
         <div className="grid items-center gap-8 lg:grid-cols-[1.25fr_1fr] lg:gap-12">
           <div className="min-w-0">
-            <p className="text-sm font-medium text-white/75">Honduras · Encuesta de Hogares del INE</p>
-            <h1 className="mt-3 text-balance text-[2rem] font-bold leading-[1.1] tracking-tight sm:text-5xl">
+            <p className="text-sm font-medium text-white/90">Honduras · Encuesta de Hogares del INE</p>
+            <h1 className="mt-3 text-[clamp(2rem,1.3rem+3vw,3rem)] font-bold leading-[1.1] tracking-tight">
               De cada 100 hogares, {poor} viven en pobreza.
             </h1>
-            <p className="mt-4 max-w-md text-base leading-relaxed text-white/85">
+            <p className="mt-4 max-w-md text-base leading-relaxed text-white/95">
               {year === first
                 ? `Así estaba el país en ${first}.`
                 : `En ${first} eran ${poorFirst}. Han pasado ${year - first} años y la cifra casi no se ha movido.`}
             </p>
           </div>
 
-          <div className="mx-auto w-full min-w-0 max-w-sm rounded-3xl bg-card p-4 text-card-foreground shadow-xl sm:p-6">
+          <div className="surface mx-auto w-full min-w-0 max-w-sm rounded-3xl p-4 sm:p-6">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold">100 hogares en {year}</p>
               <button
@@ -128,21 +128,21 @@ export default function NationalView() {
 
             <ul className="mt-4 space-y-2 text-sm">
               <li className="flex gap-2.5">
-                <span className="mt-1 h-3 w-3 shrink-0 rounded-[3px]" style={{ background: "var(--level-2)" }} />
+                <span className="mt-1 h-3 w-3 shrink-0 rounded-[3px]" data-mark style={{ background: "var(--level-2)" }} />
                 <span>
                   <strong>{extreme} en pobreza extrema:</strong>{" "}
                   <span className="text-muted-foreground">el ingreso no alcanza ni para la comida.</span>
                 </span>
               </li>
               <li className="flex gap-2.5">
-                <span className="mt-1 h-3 w-3 shrink-0 rounded-[3px]" style={{ background: "var(--level-1)" }} />
+                <span className="mt-1 h-3 w-3 shrink-0 rounded-[3px]" data-mark style={{ background: "var(--level-1)" }} />
                 <span>
                   <strong>{poor - extreme} en pobreza:</strong>{" "}
                   <span className="text-muted-foreground">alcanza para comer, pero no para lo demás básico.</span>
                 </span>
               </li>
               <li className="flex gap-2.5">
-                <span className="mt-1 h-3 w-3 shrink-0 rounded-[3px] bg-muted" />
+                <span data-empty="true" className="waffle-cell mt-1 h-3 w-3 shrink-0 rounded-[3px]" />
                 <span>
                   <strong>{100 - poor} fuera de la pobreza.</strong>
                 </span>
@@ -173,11 +173,11 @@ export default function NationalView() {
 
       <section>
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">¿Ha cambiado con los años?</h2>
-        <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+        <p className="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted-foreground">
           Muy poco. La pobreza sube y baja unos puntos, pero lleva casi dos décadas alrededor de 60 de cada 100
           hogares.
         </p>
-        <div className="mt-5 rounded-3xl bg-card p-4 shadow-sm ring-1 ring-border/60 sm:p-6">
+        <div className="mt-5 surface rounded-3xl p-4 sm:p-6">
           <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
             <span className="inline-flex items-center gap-2">
               <span className="h-0.5 w-5 rounded-full" style={{ background: "var(--level-1)" }} />
@@ -208,48 +208,48 @@ export default function NationalView() {
 
       <section>
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Así son hoy los hogares</h2>
-        <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+        <p className="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted-foreground">
           Aunque la pobreza no cede, las familias sí han cambiado desde {YEARS[0]}.
         </p>
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Fact
             icon={Users}
-            tint="bg-blue-500/10 text-blue-600 dark:text-blue-400"
+            tint="bg-blue-500/15 text-blue-700 dark:text-blue-300"
             figure={`${(now("totper_mean") ?? 0).toFixed(1)} personas`}
             title="viven en un hogar típico"
             detail={`En ${YEARS[0]} eran ${(national("totper_mean", YEARS[0]) ?? 0).toFixed(1)}. Las familias son cada vez más pequeñas.`}
           />
           <Fact
             icon={UserRound}
-            tint="bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400"
+            tint="bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300"
             figure={perHundred(now("pct_jefatura_femenina"))}
             title="hogares tienen a una mujer al frente"
             detail={`En ${YEARS[0]} eran ${perHundred(national("pct_jefatura_femenina", YEARS[0]))}.`}
           />
           <Fact
             icon={HandCoins}
-            tint="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+            tint="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
             figure={perHundred(now("pct_recibe_remesas"))}
             title="hogares reciben remesas del exterior"
             detail={`En ${remYear} eran ${perHundred(national("pct_recibe_remesas", remYear))}.`}
           />
           <Fact
             icon={Wallet}
-            tint="bg-amber-500/10 text-amber-600 dark:text-amber-400"
+            tint="bg-amber-500/15 text-amber-800 dark:text-amber-300"
             figure={formatValue("lps", now("ymophg_median"))}
             title="gana al mes un hogar típico por su trabajo principal"
             detail="La mitad de los hogares gana menos que eso y la otra mitad, más."
           />
           <Fact
             icon={Hourglass}
-            tint="bg-violet-500/10 text-violet-600 dark:text-violet-400"
+            tint="bg-violet-500/15 text-violet-700 dark:text-violet-300"
             figure={`${Math.round(now("edad_mean") ?? 0)} años`}
             title="es la edad promedio de la población"
             detail={`En ${YEARS[0]} era de ${Math.round(national("edad_mean", YEARS[0]) ?? 0)} años. El país ya no es tan joven.`}
           />
           <Fact
             icon={Briefcase}
-            tint="bg-rose-500/10 text-rose-600 dark:text-rose-400"
+            tint="bg-rose-500/15 text-rose-700 dark:text-rose-300"
             figure={perHundred(now("tasa_desempleo"))}
             title="personas que quieren trabajar no encuentran empleo"
             detail={`En ${YEARS[0]} eran ${perHundred(national("tasa_desempleo", YEARS[0]))}.`}
@@ -261,7 +261,7 @@ export default function NationalView() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Explora otros datos</h2>
-            <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-muted-foreground">{indicator.description}</p>
+            <p className="mt-2 max-w-xl text-[0.9375rem] leading-relaxed text-muted-foreground">{indicator.description}</p>
           </div>
           <Select value={selected} onValueChange={setSelected}>
             <SelectTrigger className="h-11 w-full rounded-full bg-card font-medium sm:w-64" aria-label="Indicador">
@@ -275,7 +275,7 @@ export default function NationalView() {
           </Select>
         </div>
 
-        <div className="mt-5 rounded-3xl bg-card p-4 shadow-sm ring-1 ring-border/60 sm:p-6">
+        <div className="mt-5 surface rounded-3xl p-4 sm:p-6">
           <TrendChart
             format={indicator.format}
             height={280}
