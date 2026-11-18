@@ -196,7 +196,7 @@ export default function DepartmentsView() {
       <div className="grid gap-4 lg:grid-cols-5 lg:gap-5">
         <section className={cn(card, "p-4 sm:p-5 lg:col-span-3")}>
           <div className="relative h-[210px] sm:h-[380px]">
-            <span aria-hidden="true" className="pointer-events-none absolute right-0 top-0 text-4xl font-bold tabular-nums text-foreground/10 sm:text-6xl">
+            <span className="pointer-events-none absolute right-0 top-0 z-[500] rounded-xl bg-card/80 px-2 text-4xl font-bold leading-tight tabular-nums text-foreground/70 sm:text-6xl">
               {year}
             </span>
             <HondurasMap entries={entries} selected={selected} onSelect={setSelected} />
@@ -314,7 +314,7 @@ export default function DepartmentsView() {
           <h2 className="text-xl font-bold tracking-tight sm:text-2xl">
             {tab === "ranking" ? `${chartIndicator.label} en ${year}` : "Año por año"}
           </h2>
-          <div className="flex rounded-full bg-muted p-0.5 text-xs">
+          <div className="flex shrink-0 whitespace-nowrap rounded-full bg-muted p-0.5 text-xs">
             {([["ranking", "Ranking"], ["grid", "Año por año"]] as const).map(([id, label]) => (
               <button
                 key={id}
