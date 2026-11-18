@@ -40,12 +40,11 @@ export default function HondurasMap({ entries, selected, onSelect }: HondurasMap
       const layer = l as DeptLayer
       const entry = layer.deptCode ? entries[layer.deptCode] : undefined
       const isSelected = layer.deptCode === selected
-      layer.setStyle({
-        fillColor: entry?.color,
-        fillOpacity: entry?.hasData ? 0.92 : 0.25,
-        weight: isSelected ? 3 : 1,
-      })
-      layer.getElement()?.classList.toggle("is-selected", isSelected)
+      layer.setStyle({ fillOpacity: entry?.hasData ? 1 : 0.3, weight: isSelected ? 3 : 1 })
+      const el = layer.getElement() as SVGElement | undefined
+      // Set through CSS so theme variables (var(--level-n)) resolve; an SVG attribute would not.
+      if (el) el.style.fill = entry?.color ?? ""
+      el?.classList.toggle("is-selected", isSelected)
       if (isSelected) layer.bringToFront()
       layer.setTooltipContent(
         `<strong>${layer.deptName}</strong><span>${entry?.label ?? "Sin datos"}</span>`,
@@ -68,8 +67,11 @@ export default function HondurasMap({ entries, selected, onSelect }: HondurasMap
     mapRef.current = map
 
     const fit = () => {
-      if (!layerRef.current) return
-      map.invalidateSize()
+      const el = containerRef.current
+      // Skip while hidden or collapsed: Leaflet cannot project into a 0x0 box.
+      if (!layerRef.current || !el || !el.clientWidth || !el.clientHeight) return
+      // Before the first fitBounds the map has no view yet, and invalidateSize would throw.
+      if ((map as unknown as { _loaded?: boolean })._loaded) map.invalidateSize({ animate: false, pan: false })
       map.fitBounds(MAINLAND, { padding: [4, 4] })
     }
 

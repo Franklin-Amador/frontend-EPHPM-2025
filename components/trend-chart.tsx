@@ -26,6 +26,8 @@ interface TrendChartProps {
   format: IndicatorFormat
   height?: number
   highlightYear?: number
+  /** Start the scale at zero so small changes are not exaggerated. */
+  zeroBased?: boolean
 }
 
 const axisTick = { fontSize: 11, fill: "hsl(var(--muted-foreground))" }
@@ -49,7 +51,7 @@ const SLOTS: Slot[] = YEARS.flatMap((year, i) => {
   return [{ slot: `gap-${prev}`, gap }, here]
 })
 
-export default function TrendChart({ series, format, height = 280, highlightYear }: TrendChartProps) {
+export default function TrendChart({ series, format, height = 280, highlightYear, zeroBased }: TrendChartProps) {
   const data = SLOTS.map((s) => {
     const row: Record<string, string | number | null> = { slot: s.slot }
     series.forEach((line, i) => (row[`s${i}`] = s.year ? (line.values[s.year] ?? null) : null))
@@ -98,7 +100,7 @@ export default function TrendChart({ series, format, height = 280, highlightYear
           tick={axisTick}
           tickLine={false}
           axisLine={false}
-          domain={["auto", "auto"]}
+          domain={[zeroBased ? 0 : "auto", "auto"]}
           tickFormatter={(v: number) => compact(format, v)}
         />
         <Tooltip

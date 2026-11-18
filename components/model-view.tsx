@@ -9,10 +9,11 @@ import {
   CLUSTER_COLORS,
   DEPARTMENTS,
   LATEST_YEAR,
+  YEARS,
   deptRow,
-  formatValue,
   getIndicator,
   panel,
+  perHundred,
 } from "@/lib/panel"
 
 const FEATURES = panel.model.features
@@ -27,11 +28,41 @@ const RANGE: Record<string, [number, number, number]> = {
   tasa_dependencia: [0.3, 1.2, 0.01],
 }
 
+// The same six inputs, said the way a person would say them.
+const PLAIN: Record<string, string> = {
+  tasa_pobreza: "Hogares en pobreza",
+  tasa_pobreza_extrema: "Hogares en pobreza extrema",
+  ymophg_median_rel: "Ingreso comparado con el del país",
+  tasa_ocupacion: "Adultos con trabajo",
+  tasa_desempleo: "Personas sin empleo que lo buscan",
+  tasa_dependencia: "Niños y adultos mayores por cada adulto",
+}
+
+const GLOSSARY = [
+  ["Hogar", "Las personas que viven juntas y comparten la comida. Las cifras se cuentan por hogar, no por persona."],
+  ["Pobreza", "Lo que gana el hogar no alcanza para la canasta básica: comida, vivienda, salud, educación y transporte."],
+  ["Pobreza extrema", "Lo que gana el hogar no alcanza ni siquiera para la comida."],
+  ["Ingreso típico", "El ingreso del hogar que queda justo en medio: la mitad gana menos y la otra mitad gana más."],
+  ["Remesas", "Dinero que envían familiares que viven en otro país."],
+] as const
+
+const LEVEL_TEXT = [
+  "Menos hogares pobres y mejores ingresos que el resto del país.",
+  "Una situación parecida al promedio nacional.",
+  "Más hogares pobres, ingresos muy bajos y más personas que mantener por cada adulto.",
+]
+
 type Result = { cluster: number; cluster_name: string; description: string }
 
 function valuesOf(code: number): Record<string, number> {
   const row = deptRow(code, LATEST_YEAR)!
   return Object.fromEntries(FEATURES.map((f) => [f, row[f] as number]))
+}
+
+function plainValue(key: string, value: number): string {
+  if (key === "ymophg_median_rel") return `${Math.round(value * 100)}% del nacional`
+  if (key === "tasa_dependencia") return value.toFixed(2)
+  return perHundred(value)
 }
 
 export default function ModelView() {
@@ -52,54 +83,73 @@ export default function ModelView() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       })
-      if (!res.ok) throw new Error(`La API respondió ${res.status}`)
+      if (!res.ok) throw new Error(`el servicio respondió ${res.status}`)
       setResult(await res.json())
     } catch (e) {
       setResult(null)
-      setError(e instanceof Error ? e.message : "No se pudo consultar la API")
+      setError(e instanceof Error ? e.message : "no hubo respuesta")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="flex flex-col gap-10 sm:gap-14">
+    <div className="flex flex-col gap-12 pt-7 sm:gap-16 sm:pt-0">
       <section>
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Cómo se asigna el nivel</h1>
-        <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
-          Un modelo {panel.model.algorithm} agrupa cada departamento en cada año según {FEATURES.length} indicadores
-          comparables en el tiempo, a partir de {panel.model.rows} observaciones.
+        <h1 className="text-balance text-[1.75rem] font-bold leading-tight tracking-tight sm:text-4xl">
+          ¿De dónde salen estos números?
+        </h1>
+        <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+          Cada año el Instituto Nacional de Estadística visita miles de hogares en todo el país y les pregunta
+          cuántos son, en qué trabajan y cuánto ganan. Aquí se resumen {YEARS.length} de esas encuestas, de{" "}
+          {YEARS[0]} a {LATEST_YEAR}.
         </p>
+      </section>
 
-        <div className="mt-7 grid gap-x-8 gap-y-7 md:grid-cols-3">
-          {CLUSTERS.map((c) => (
-            <div key={c.id} className="border-t-2 pt-3" style={{ borderColor: CLUSTER_COLORS[c.id] }}>
-              <h2 className="text-sm font-semibold">{c.name}</h2>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{c.description}</p>
-              <dl className="mt-3 space-y-1.5 text-xs">
-                {FEATURES.map((f) => (
-                  <div key={f} className="flex justify-between gap-2">
-                    <dt className="text-muted-foreground">{getIndicator(f).label}</dt>
-                    <dd className="tabular-nums">{formatValue(getIndicator(f).format, c.profile[f])}</dd>
-                  </div>
-                ))}
-              </dl>
+      <section>
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Palabras que usamos</h2>
+        <dl className="mt-5 grid gap-4 sm:grid-cols-2">
+          {GLOSSARY.map(([term, meaning]) => (
+            <div key={term} className="rounded-3xl bg-card p-5 shadow-sm ring-1 ring-border/60">
+              <dt className="text-base font-bold">{term}</dt>
+              <dd className="mt-1 text-sm leading-relaxed text-muted-foreground">{meaning}</dd>
             </div>
           ))}
-        </div>
+        </dl>
+      </section>
 
-        <p className="mt-7 max-w-xl text-xs leading-relaxed text-muted-foreground">
-          Los niveles son tramos de un gradiente continuo, no tipos nítidos de departamento (silhouette{" "}
-          {panel.model.silhouette.toFixed(2)}). Los departamentos más pobres muestran menos desempleo porque allí
-          casi todos trabajan, sobre todo en agricultura, aunque con ingresos muy bajos.
+      <section>
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Los tres colores del mapa</h2>
+        <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+          Un programa compara los departamentos en cada año y los reúne en tres grupos según qué tan parecida es su
+          situación.
+        </p>
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          {CLUSTERS.map((c) => (
+            <article key={c.id} className="overflow-hidden rounded-3xl bg-card shadow-sm ring-1 ring-border/60">
+              <div className="h-2" style={{ background: CLUSTER_COLORS[c.id] }} />
+              <div className="p-5">
+                <h3 className="text-base font-bold">{c.name}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{LEVEL_TEXT[c.id]}</p>
+                <p className="mt-4 text-3xl font-bold tracking-tight">{Math.round(c.profile.tasa_pobreza * 100)}</p>
+                <p className="text-sm text-muted-foreground">de cada 100 hogares en pobreza, en promedio</p>
+              </div>
+            </article>
+          ))}
+        </div>
+        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          Los grupos son una guía, no una frontera exacta: dos departamentos de colores distintos pueden estar muy
+          cerca entre sí.
         </p>
       </section>
 
       <section>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-lg font-semibold tracking-tight">Probar el modelo</h2>
-            <p className="mt-0.5 text-sm text-muted-foreground">Mueve los indicadores y consulta el nivel.</p>
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Pruébalo tú</h2>
+            <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
+              Parte de un departamento, cambia sus números y mira en qué grupo quedaría.
+            </p>
           </div>
           <Select
             value={preset}
@@ -109,27 +159,26 @@ export default function ModelView() {
               setResult(null)
             }}
           >
-            <SelectTrigger className="h-10 w-full rounded-full bg-card sm:w-60" aria-label="Partir de un departamento">
+            <SelectTrigger className="h-11 w-full rounded-full bg-card font-medium sm:w-60" aria-label="Partir de un departamento">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {presets.map((d) => (
-                <SelectItem key={d.code} value={String(d.code)}>{d.name} · {LATEST_YEAR}</SelectItem>
+                <SelectItem key={d.code} value={String(d.code)}>{d.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
-        <div className="mt-5 rounded-2xl bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)] ring-1 ring-border/70 sm:p-6">
+        <div className="mt-5 rounded-3xl bg-card p-5 shadow-sm ring-1 ring-border/60 sm:p-7">
           <div className="grid gap-x-10 gap-y-5 md:grid-cols-2">
             {FEATURES.map((f) => {
-              const indicator = getIndicator(f)
               const [min, max, step] = RANGE[f]
               return (
                 <label key={f} className="block">
-                  <span className="flex justify-between text-sm">
-                    <span>{indicator.label}</span>
-                    <span className="tabular-nums text-muted-foreground">{formatValue(indicator.format, values[f])}</span>
+                  <span className="flex items-baseline justify-between gap-3 text-sm">
+                    <span className="font-medium">{PLAIN[f] ?? getIndicator(f).label}</span>
+                    <span className="shrink-0 tabular-nums text-muted-foreground">{plainValue(f, values[f])}</span>
                   </span>
                   <input
                     type="range"
@@ -141,7 +190,7 @@ export default function ModelView() {
                       setValues({ ...values, [f]: Number(e.target.value) })
                       setResult(null)
                     }}
-                    className="mt-2 h-6 w-full accent-[hsl(var(--chart-1))]"
+                    className="mt-2 h-6 w-full accent-[hsl(var(--primary))]"
                   />
                 </label>
               )
@@ -152,20 +201,32 @@ export default function ModelView() {
             <button
               onClick={submit}
               disabled={loading}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              Consultar nivel
+              Ver en qué grupo queda
             </button>
             {result && (
-              <p className="flex items-center gap-2 text-sm">
-                <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: CLUSTER_COLORS[result.cluster] }} />
-                <span className="font-medium">{result.cluster_name}</span>
+              <p
+                className="rounded-full px-4 py-2 text-sm font-semibold"
+                style={{ background: CLUSTER_COLORS[result.cluster], color: result.cluster === 1 ? "#0b0b0b" : "#fff" }}
+              >
+                {CLUSTERS[result.cluster].name}
               </p>
             )}
-            {error && <p className="text-sm text-muted-foreground">No se pudo consultar el modelo: {error}.</p>}
+            {error && <p className="text-sm text-muted-foreground">No se pudo consultar ahora ({error}).</p>}
           </div>
         </div>
+
+        <details className="mt-5 text-sm text-muted-foreground">
+          <summary className="cursor-pointer font-medium text-primary">Detalles técnicos</summary>
+          <p className="mt-2 max-w-2xl leading-relaxed">
+            Modelo {panel.model.algorithm} con {panel.model.k} grupos, entrenado con {panel.model.rows} observaciones
+            departamento-año y {FEATURES.length} indicadores estandarizados. Silhouette{" "}
+            {panel.model.silhouette.toFixed(2)}. Cifras ponderadas con el factor de expansión. Fuente: {panel.source}.
+            El ingreso se muestra en lempiras de cada año, sin descontar inflación.
+          </p>
+        </details>
       </section>
     </div>
   )

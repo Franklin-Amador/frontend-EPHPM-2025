@@ -14,54 +14,69 @@
   }
 }
 
-/* The interface is neutral (ink on paper); colour is reserved for the data:
-   --chart-1 for lines and the three level colours in lib/panel.ts. */
+/* Data colours were checked with the dataviz palette validator against each theme's
+   card surface (colour-blind separation, normal-vision distance, contrast):
+   levels  light #2a78d6 / #eda100 / #e34948   dark #3987e5 / #c98500 / #d03b3b */
 @layer base {
   :root {
-    --background: 40 20% 98%;
-    --foreground: 240 8% 12%;
+    --background: 220 33% 97%;
+    --foreground: 222 30% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 240 8% 12%;
+    --card-foreground: 222 30% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 8% 12%;
-    --primary: 240 8% 12%;
+    --popover-foreground: 222 30% 12%;
+    --primary: 213 68% 50%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 40 10% 94%;
-    --secondary-foreground: 240 8% 12%;
-    --muted: 40 10% 94%;
-    --muted-foreground: 240 4% 44%;
-    --accent: 40 10% 94%;
-    --accent-foreground: 240 8% 12%;
-    --destructive: 350 60% 50%;
+    --secondary: 220 25% 93%;
+    --secondary-foreground: 222 30% 12%;
+    --muted: 220 25% 93%;
+    --muted-foreground: 220 10% 40%;
+    --accent: 220 25% 93%;
+    --accent-foreground: 222 30% 12%;
+    --destructive: 0 73% 59%;
     --destructive-foreground: 0 0% 100%;
-    --border: 40 8% 90%;
-    --input: 40 8% 88%;
-    --ring: 240 8% 12%;
-    --chart-1: 243 60% 58%;
-    --radius: 0.875rem;
+    --border: 220 20% 89%;
+    --input: 220 20% 86%;
+    --ring: 213 68% 50%;
+    --chart-1: 213 68% 50%;
+    --radius: 1rem;
+
+    --level-0: #2a78d6;
+    --level-1: #eda100;
+    --level-2: #e34948;
+    --no-data: #9aa3b2;
+    --hero-from: #0b2f6b;
+    --hero-to: #2a78d6;
   }
 
   .dark {
-    --background: 230 14% 7%;
-    --foreground: 40 10% 94%;
-    --card: 230 12% 10%;
-    --card-foreground: 40 10% 94%;
-    --popover: 230 12% 12%;
-    --popover-foreground: 40 10% 94%;
-    --primary: 40 10% 94%;
-    --primary-foreground: 230 14% 7%;
-    --secondary: 230 10% 15%;
-    --secondary-foreground: 40 10% 94%;
-    --muted: 230 10% 15%;
-    --muted-foreground: 230 6% 64%;
-    --accent: 230 10% 15%;
-    --accent-foreground: 40 10% 94%;
-    --destructive: 350 65% 62%;
+    --background: 222 22% 8%;
+    --foreground: 220 20% 95%;
+    --card: 222 18% 11%;
+    --card-foreground: 220 20% 95%;
+    --popover: 222 18% 13%;
+    --popover-foreground: 220 20% 95%;
+    --primary: 213 77% 56%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 222 15% 16%;
+    --secondary-foreground: 220 20% 95%;
+    --muted: 222 15% 16%;
+    --muted-foreground: 220 10% 68%;
+    --accent: 222 15% 16%;
+    --accent-foreground: 220 20% 95%;
+    --destructive: 0 62% 52%;
     --destructive-foreground: 0 0% 100%;
-    --border: 230 10% 17%;
-    --input: 230 10% 20%;
-    --ring: 40 10% 94%;
-    --chart-1: 239 80% 74%;
+    --border: 222 14% 19%;
+    --input: 222 14% 22%;
+    --ring: 213 77% 56%;
+    --chart-1: 213 77% 56%;
+
+    --level-0: #3987e5;
+    --level-1: #c98500;
+    --level-2: #d03b3b;
+    --no-data: #5d6573;
+    --hero-from: #0a2552;
+    --hero-to: #1c5cab;
   }
 }
 
@@ -75,6 +90,23 @@
   }
 }
 
+.hero {
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgb(255 255 255 / 0.16), transparent 60%),
+    linear-gradient(135deg, var(--hero-from), var(--hero-to));
+}
+
+/* The squares only change colour between years; no entrance animation, so they are
+   never left half-drawn when the tab is in the background. */
+.waffle-cell {
+  transition: background-color 450ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .waffle-cell {
+    transition: none;
+  }
+}
+
 /* Leaflet choropleth: no basemap, so the shapes take their outline from the theme. */
 .leaflet-container.leaflet-container {
   background: transparent;
@@ -84,10 +116,10 @@
   stroke: hsl(var(--card));
   cursor: pointer;
   outline: none;
-  transition: fill 200ms ease, fill-opacity 200ms ease;
+  transition: fill 350ms ease, fill-opacity 350ms ease;
 }
 .dept-shape:hover {
-  filter: brightness(1.06);
+  filter: brightness(1.08);
 }
 .dept-shape.is-selected {
   stroke: hsl(var(--foreground));
@@ -102,7 +134,7 @@
   color: hsl(var(--muted-foreground));
   padding: 6px 10px;
   font-size: 12px;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.14);
 }
 .leaflet-tooltip.dept-tooltip strong {
   color: hsl(var(--popover-foreground));

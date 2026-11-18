@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import dynamic from "next/dynamic"
+import { Pause, Play } from "lucide-react"
 import TrendChart from "@/components/trend-chart"
 import type { MapEntry } from "@/components/honduras-map"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -22,6 +23,7 @@ import {
   labelFor,
   nationalRow,
   panel,
+  perHundred,
   rampCss,
   rowsForDepartment,
   rowsForYear,
@@ -33,8 +35,7 @@ const HondurasMap = dynamic(() => import("@/components/honduras-map"), {
   loading: () => <div className="h-full w-full animate-pulse rounded-xl bg-muted" />,
 })
 
-const DETAIL_KEYS = ["tasa_pobreza", "tasa_pobreza_extrema", "ymophg_median", "tasa_desempleo"]
-const card = "rounded-2xl bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04)] ring-1 ring-border/70"
+const card = "rounded-3xl bg-card shadow-sm ring-1 ring-border/60"
 
 function YearPicker({ year, onChange }: { year: number; onChange: (y: number) => void }) {
   const active = useRef<HTMLButtonElement>(null)
@@ -57,7 +58,7 @@ function YearPicker({ year, onChange }: { year: number; onChange: (y: number) =>
           className={cn(
             "shrink-0 rounded-full px-3 py-1.5 text-sm tabular-nums transition-colors",
             y === year
-              ? "bg-foreground font-medium text-background"
+              ? "bg-primary font-semibold text-primary-foreground"
               : "text-muted-foreground hover:bg-muted hover:text-foreground",
           )}
         >
@@ -98,6 +99,23 @@ export default function DepartmentsView() {
   const [selected, setSelected] = useState<number | null>(null)
   const [tab, setTab] = useState<"ranking" | "grid">("ranking")
   const detailRef = useRef<HTMLElement>(null)
+  const [playing, setPlaying] = useState(false)
+
+  // "Play" steps through the survey years so the map changes in front of the reader.
+  useEffect(() => {
+    if (!playing) return
+    const id = setInterval(() => {
+      setYear((y) => {
+        const next = YEARS[YEARS.indexOf(y) + 1]
+        if (next === undefined) {
+          setPlaying(false)
+          return y
+        }
+        return next
+      })
+    }, 1200)
+    return () => clearInterval(id)
+  }, [playing])
 
   // Picking from the lists below the fold brings the detail card back into view.
   const selectFromList = (code: number) => {
@@ -131,12 +149,30 @@ export default function DepartmentsView() {
   const national = nationalRow(year)
 
   return (
-    <div className="flex flex-col gap-6 sm:gap-8">
+    <div className="flex flex-col gap-6 pt-7 sm:gap-8 sm:pt-0">
       <section className="flex flex-col gap-4">
+        <div>
+          <h1 className="text-balance text-[1.75rem] font-bold leading-tight tracking-tight sm:text-4xl">
+            ¿Dónde es más difícil vivir?
+          </h1>
+          <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+            No todo el país vive igual. Toca un departamento para conocer su situación, o reproduce los años para
+            ver cómo cambia el mapa.
+          </p>
+        </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Departamentos</h1>
+          <button
+            onClick={() => {
+              if (!playing && year === LATEST_YEAR) setYear(YEARS[0])
+              setPlaying(!playing)
+            }}
+            className="inline-flex h-11 items-center justify-center gap-2 self-start rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground"
+          >
+            {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            {playing ? "Pausar" : "Reproducir los años"}
+          </button>
           <Select value={metric} onValueChange={setMetric}>
-            <SelectTrigger className="h-10 w-full rounded-full bg-card sm:w-64" aria-label="Qué mostrar en el mapa">
+            <SelectTrigger className="h-11 w-full rounded-full bg-card font-medium sm:w-72" aria-label="Qué mostrar en el mapa">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -147,17 +183,26 @@ export default function DepartmentsView() {
             </SelectContent>
           </Select>
         </div>
-        <YearPicker year={year} onChange={setYear} />
+        <YearPicker
+          year={year}
+          onChange={(y) => {
+            setPlaying(false)
+            setYear(y)
+          }}
+        />
       </section>
 
       <div className="grid gap-4 lg:grid-cols-5 lg:gap-5">
         <section className={cn(card, "p-4 sm:p-5 lg:col-span-3")}>
-          <div className="h-[200px] sm:h-[380px]">
+          <div className="relative h-[210px] sm:h-[380px]">
+            <span className="pointer-events-none absolute right-0 top-0 text-4xl font-bold tabular-nums text-foreground/10 sm:text-6xl">
+              {year}
+            </span>
             <HondurasMap entries={entries} selected={selected} onSelect={setSelected} />
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
             <Legend metric={metric} />
-            <span className="text-xs text-muted-foreground">Toca un departamento</span>
+            <span className="text-xs text-muted-foreground">Gris: sin dato ese año</span>
           </div>
           {!metricAvailable && (
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
@@ -180,37 +225,66 @@ export default function DepartmentsView() {
             </div>
           ) : (
             <>
-              <p className="text-xs text-muted-foreground">{year}</p>
-              <h2 className="text-xl font-semibold tracking-tight">{dept.name}</h2>
-              {selectedRow && selectedRow.cluster !== null && (
-                <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <span className="h-2 w-2 rounded-full" style={{ background: CLUSTER_COLORS[selectedRow.cluster] }} />
-                  {CLUSTERS[selectedRow.cluster].name}
-                </p>
-              )}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-2xl font-bold tracking-tight">{dept.name}</h2>
+                {selectedRow && selectedRow.cluster !== null && (
+                  <span
+                    className="rounded-full px-3 py-1 text-xs font-semibold"
+                    style={{
+                      background: CLUSTER_COLORS[selectedRow.cluster],
+                      color: selectedRow.cluster === 1 ? "#0b0b0b" : "#fff",
+                    }}
+                  >
+                    {CLUSTERS[selectedRow.cluster].name}
+                  </span>
+                )}
+              </div>
 
-              {!selectedRow ? (
-                <p className="mt-5 text-sm text-muted-foreground">
-                  La encuesta de {year} no tiene muestra en {dept.name}.
+              {!selectedRow || selectedRow.tasa_pobreza == null ? (
+                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                  {selectedRow
+                    ? `La encuesta de ${year} no midió la pobreza.`
+                    : `La encuesta de ${year} no visitó hogares en ${dept.name}.`}
                 </p>
               ) : (
-                <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-4">
-                  {DETAIL_KEYS.map((key) => {
-                    const i = getIndicator(key)
-                    return (
-                      <div key={key}>
-                        <dt className="text-xs text-muted-foreground">{i.label}</dt>
-                        <dd className="mt-0.5 text-lg font-semibold tabular-nums">{formatValue(i.format, selectedRow[key])}</dd>
-                        <dd className="text-[11px] tabular-nums text-muted-foreground">
-                          país {formatValue(i.format, national?.[key])}
-                        </dd>
+                <>
+                  <p className="mt-3 text-[15px] leading-relaxed">
+                    En {year}, <strong>{perHundred(selectedRow.tasa_pobreza)} hogares</strong> vivían en pobreza.
+                  </p>
+                  <div className="mt-3 space-y-2">
+                    {(
+                      [
+                        [dept.name, selectedRow.tasa_pobreza, "hsl(var(--chart-1))"],
+                        ["Todo el país", national?.tasa_pobreza ?? null, "var(--no-data)"],
+                      ] as const
+                    ).map(([label, value, color]) => (
+                      <div key={label} className="grid grid-cols-[6.5rem_1fr_2rem] items-center gap-2 text-xs">
+                        <span className="truncate text-muted-foreground">{label}</span>
+                        <span className="h-2.5 overflow-hidden rounded-full bg-muted">
+                          <span
+                            className="block h-full rounded-full"
+                            style={{ width: `${(value ?? 0) * 100}%`, background: color }}
+                          />
+                        </span>
+                        <span className="text-right font-semibold tabular-nums">{Math.round((value ?? 0) * 100)}</span>
                       </div>
-                    )
-                  })}
-                </dl>
+                    ))}
+                  </div>
+                  <ul className="mt-4 space-y-1.5 text-sm leading-relaxed text-muted-foreground">
+                    <li>
+                      <strong className="text-foreground">{perHundred(selectedRow.tasa_pobreza_extrema)}</strong> no
+                      tienen ni para la comida.
+                    </li>
+                    <li>
+                      Un hogar típico gana{" "}
+                      <strong className="text-foreground">{formatValue("lps", selectedRow.ymophg_median)}</strong> al
+                      mes (en el país, {formatValue("lps", national?.ymophg_median)}).
+                    </li>
+                  </ul>
+                </>
               )}
 
-              <div className="mt-6">
+              <div className="mt-5">
                 <p className="text-xs text-muted-foreground">
                   {chartIndicator.label} en el tiempo · línea punteada: país
                 </p>
@@ -245,7 +319,7 @@ export default function DepartmentsView() {
 
       <section>
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold tracking-tight">
+          <h2 className="text-xl font-bold tracking-tight sm:text-2xl">
             {tab === "ranking" ? `${chartIndicator.label} en ${year}` : "Año por año"}
           </h2>
           <div className="flex rounded-full bg-muted p-0.5 text-xs">

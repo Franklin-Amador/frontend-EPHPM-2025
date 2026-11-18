@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
 const VIEWS = [
   { id: "pais", label: "País" },
   { id: "departamentos", label: "Departamentos" },
-  { id: "modelo", label: "Modelo" },
+  { id: "modelo", label: "Cómo se mide" },
 ] as const
 
 type ViewId = (typeof VIEWS)[number]["id"]
@@ -41,7 +41,10 @@ export default function HomePage() {
       <header className="sticky top-0 z-[1000] bg-background/85 backdrop-blur-lg">
         <div className="mx-auto max-w-5xl px-5 sm:px-8">
           <div className="flex h-14 items-center justify-between gap-3">
-            <p className="text-[15px] font-semibold tracking-tight">Honduras en cifras</p>
+            <p className="flex items-center gap-2 text-[15px] font-bold tracking-tight">
+              <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+              Honduras en cifras
+            </p>
             <ThemeToggle />
           </div>
           {/* Underlined tabs: full width on a phone, no boxes competing with the content. */}
@@ -55,9 +58,9 @@ export default function HomePage() {
                 }}
                 aria-current={view === v.id ? "page" : undefined}
                 className={cn(
-                  "border-b-2 pb-2.5 text-sm transition-colors",
+                  "border-b-2 pb-2.5 text-sm whitespace-nowrap transition-colors",
                   view === v.id
-                    ? "border-foreground font-medium text-foreground"
+                    ? "border-primary font-semibold text-foreground"
                     : "border-transparent text-muted-foreground hover:text-foreground",
                 )}
               >
@@ -68,7 +71,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8 sm:px-8 sm:py-12">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-5 pb-10 sm:px-8 sm:py-10">
         {view === "pais" && <NationalView />}
         {view === "departamentos" && <DepartmentsView />}
         {view === "modelo" && <ModelView />}

@@ -57,9 +57,9 @@ export const DEPARTMENTS = panel.departments
 /** "cluster" is the model's level; any other value is an indicator key. */
 export const CLUSTER_METRIC = "cluster"
 
-// Muted on purpose: the UI is neutral and these are the only strong colours on screen.
-export const CLUSTER_COLORS = ["#3a9d8f", "#e3b04b", "#d2596b"]
-export const NO_DATA_COLOR = "#a1a1aa"
+// CSS variables so each theme gets its own validated step (see app/globals.css).
+export const CLUSTER_COLORS = ["var(--level-0)", "var(--level-1)", "var(--level-2)"]
+export const NO_DATA_COLOR = "var(--no-data)"
 
 const indicatorMap = new Map(INDICATORS.map((i) => [i.key, i]))
 const departmentMap = new Map(DEPARTMENTS.map((d) => [d.code, d]))
@@ -118,10 +118,11 @@ export function indicatorExtent(key: string): [number, number] {
   return extent
 }
 
+// One hue, light to dark: more is darker.
 const RAMP = [
-  [221, 226, 250],
-  [132, 141, 232],
-  [62, 58, 150],
+  [205, 226, 251],
+  [57, 135, 229],
+  [13, 54, 107],
 ]
 
 function ramp(t: number): string {
@@ -156,3 +157,9 @@ export function labelFor(metric: string, row: DeptRow | undefined): string {
 
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "https://base-ephpm-julio-2025.vercel.app"
+
+/** "60 de cada 100": the way a rate is said out loud. */
+export function perHundred(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "—"
+  return `${Math.round(value * 100)} de cada 100`
+}
