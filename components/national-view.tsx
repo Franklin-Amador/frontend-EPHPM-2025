@@ -38,18 +38,21 @@ function Waffle({ extreme, poor }: { extreme: number; poor: number }) {
 function Fact({
   icon: Icon,
   tint,
+  tone,
   figure,
   title,
   detail,
 }: {
   icon: LucideIcon
   tint: string
+  /** light-theme fill and edge of the card; the dark theme keeps the neutral surface */
+  tone: string
   figure: string
   title: string
   detail: string
 }) {
   return (
-    <article className="surface flex flex-col gap-3 rounded-3xl p-5">
+    <article className={cn("surface flex flex-col gap-3 rounded-3xl p-5", tone)}>
       <span className={cn("flex h-12 w-12 items-center justify-center rounded-2xl", tint)}>
         <Icon className="h-5 w-5" />
       </span>
@@ -214,42 +217,48 @@ export default function NationalView() {
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Fact
             icon={Users}
-            tint="bg-blue-500/15 text-blue-700 dark:text-blue-300"
+            tint="bg-blue-500/20 text-blue-800 dark:text-blue-300"
+            tone="bg-blue-50 border-blue-200 dark:bg-card dark:border-border"
             figure={`${(now("totper_mean") ?? 0).toFixed(1)} personas`}
             title="viven en un hogar típico"
             detail={`En ${YEARS[0]} eran ${(national("totper_mean", YEARS[0]) ?? 0).toFixed(1)}. Las familias son cada vez más pequeñas.`}
           />
           <Fact
             icon={UserRound}
-            tint="bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300"
+            tint="bg-fuchsia-500/20 text-fuchsia-800 dark:text-fuchsia-300"
+            tone="bg-fuchsia-50 border-fuchsia-200 dark:bg-card dark:border-border"
             figure={perHundred(now("pct_jefatura_femenina"))}
             title="hogares tienen a una mujer al frente"
             detail={`En ${YEARS[0]} eran ${perHundred(national("pct_jefatura_femenina", YEARS[0]))}.`}
           />
           <Fact
             icon={HandCoins}
-            tint="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+            tint="bg-emerald-500/20 text-emerald-800 dark:text-emerald-300"
+            tone="bg-emerald-50 border-emerald-200 dark:bg-card dark:border-border"
             figure={perHundred(now("pct_recibe_remesas"))}
             title="hogares reciben remesas del exterior"
             detail={`En ${remYear} eran ${perHundred(national("pct_recibe_remesas", remYear))}.`}
           />
           <Fact
             icon={Wallet}
-            tint="bg-amber-500/15 text-amber-800 dark:text-amber-300"
+            tint="bg-amber-500/25 text-amber-900 dark:text-amber-300"
+            tone="bg-amber-50 border-amber-200 dark:bg-card dark:border-border"
             figure={formatValue("lps", now("ymophg_median"))}
             title="gana al mes un hogar típico por su trabajo principal"
             detail="La mitad de los hogares gana menos que eso y la otra mitad, más."
           />
           <Fact
             icon={Hourglass}
-            tint="bg-violet-500/15 text-violet-700 dark:text-violet-300"
+            tint="bg-violet-500/20 text-violet-800 dark:text-violet-300"
+            tone="bg-violet-50 border-violet-200 dark:bg-card dark:border-border"
             figure={`${Math.round(now("edad_mean") ?? 0)} años`}
             title="es la edad promedio de la población"
             detail={`En ${YEARS[0]} era de ${Math.round(national("edad_mean", YEARS[0]) ?? 0)} años. El país ya no es tan joven.`}
           />
           <Fact
             icon={Briefcase}
-            tint="bg-rose-500/15 text-rose-700 dark:text-rose-300"
+            tint="bg-rose-500/20 text-rose-800 dark:text-rose-300"
+            tone="bg-rose-50 border-rose-200 dark:bg-card dark:border-border"
             figure={perHundred(now("tasa_desempleo"))}
             title="personas que quieren trabajar no encuentran empleo"
             detail={`En ${YEARS[0]} eran ${perHundred(national("tasa_desempleo", YEARS[0]))}.`}

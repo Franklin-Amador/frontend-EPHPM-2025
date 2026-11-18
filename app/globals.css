@@ -13,24 +13,26 @@
 @layer base {
   :root {
     color-scheme: light;
-    --background: 220 27% 95%;
+    /* A tinted page, not a white one: cards are the only near-white surfaces. */
+    --background: 216 36% 91%;
+    --page-glow: 214 55% 85%;
     --foreground: 222 30% 12%;
-    --card: 0 0% 100%;
+    --card: 216 60% 99%;
     --card-foreground: 222 30% 12%;
-    --popover: 0 0% 100%;
+    --popover: 216 60% 99%;
     --popover-foreground: 222 30% 12%;
-    --primary: 214 72% 40%;
+    --primary: 214 76% 35%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 22% 91%;
+    --secondary: 216 34% 88%;
     --secondary-foreground: 222 30% 12%;
-    --muted: 220 22% 92%;
-    --muted-foreground: 220 12% 34%;
-    --accent: 220 22% 91%;
+    --muted: 216 34% 89%;
+    --muted-foreground: 220 14% 30%;
+    --accent: 216 34% 88%;
     --accent-foreground: 222 30% 12%;
     --destructive: 0 70% 45%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 16% 82%;
-    --input: 220 14% 62%;
+    --border: 216 24% 76%;
+    --input: 216 16% 56%;
     --ring: 222 30% 12%;
     --chart-1: 213 68% 50%;
     --radius: 1rem;
@@ -49,6 +51,7 @@
   .dark {
     color-scheme: dark;
     --background: 222 22% 7%;
+    --page-glow: 222 22% 7%;
     --foreground: 220 20% 96%;
     --card: 222 18% 12%;
     --card-foreground: 220 20% 96%;
@@ -95,7 +98,10 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    /* soft band of colour behind the top of the page, fading into the page tone */
+    background: linear-gradient(to bottom, hsl(var(--page-glow)), hsl(var(--background)) 34rem) hsl(var(--background));
+    background-repeat: no-repeat;
     line-height: 1.5;
     font-feature-settings: "cv11", "ss01";
   }

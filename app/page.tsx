@@ -38,7 +38,7 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-[1000] bg-background/85 backdrop-blur-lg">
+      <header className="sticky top-0 z-[1000] bg-[hsl(var(--page-glow)/0.85)] backdrop-blur-lg">
         <div className="mx-auto max-w-5xl px-5 sm:px-8">
           <div className="flex h-14 items-center justify-between gap-3">
             <p className="flex items-center gap-2 text-[0.9375rem] font-bold tracking-tight">
