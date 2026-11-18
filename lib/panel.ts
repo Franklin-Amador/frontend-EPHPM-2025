@@ -57,8 +57,9 @@ export const DEPARTMENTS = panel.departments
 /** "cluster" is the model's level; any other value is an indicator key. */
 export const CLUSTER_METRIC = "cluster"
 
-export const CLUSTER_COLORS = ["#0d9488", "#f59e0b", "#e11d48"]
-export const NO_DATA_COLOR = "#94a3b8"
+// Muted on purpose: the UI is neutral and these are the only strong colours on screen.
+export const CLUSTER_COLORS = ["#3a9d8f", "#e3b04b", "#d2596b"]
+export const NO_DATA_COLOR = "#a1a1aa"
 
 const indicatorMap = new Map(INDICATORS.map((i) => [i.key, i]))
 const departmentMap = new Map(DEPARTMENTS.map((d) => [d.code, d]))
@@ -118,9 +119,9 @@ export function indicatorExtent(key: string): [number, number] {
 }
 
 const RAMP = [
-  [224, 231, 255],
-  [129, 140, 248],
-  [55, 48, 163],
+  [221, 226, 250],
+  [132, 141, 232],
+  [62, 58, 150],
 ]
 
 function ramp(t: number): string {

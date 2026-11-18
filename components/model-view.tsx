@@ -63,55 +63,43 @@ export default function ModelView() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-        <h2 className="text-xl font-semibold tracking-tight">Cómo se asigna el nivel</h2>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+    <div className="flex flex-col gap-10 sm:gap-14">
+      <section>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Cómo se asigna el nivel</h1>
+        <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
           Un modelo {panel.model.algorithm} agrupa cada departamento en cada año según {FEATURES.length} indicadores
-          comparables en el tiempo. Se entrenó con {panel.model.rows} observaciones departamento-año de los cortes
-          que incluyen medición de pobreza.
+          comparables en el tiempo, a partir de {panel.model.rows} observaciones.
         </p>
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
+
+        <div className="mt-7 grid gap-x-8 gap-y-7 md:grid-cols-3">
           {CLUSTERS.map((c) => (
-            <div key={c.id} className="rounded-xl border border-border p-4">
-              <span className="inline-flex items-center gap-2 text-sm font-semibold">
-                <span className="h-2.5 w-2.5 rounded-full" style={{ background: CLUSTER_COLORS[c.id] }} />
-                {c.name}
-              </span>
-              <p className="mt-1 text-xs text-muted-foreground">{c.description}</p>
-              <dl className="mt-3 space-y-1 text-xs">
+            <div key={c.id} className="border-t-2 pt-3" style={{ borderColor: CLUSTER_COLORS[c.id] }}>
+              <h2 className="text-sm font-semibold">{c.name}</h2>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{c.description}</p>
+              <dl className="mt-3 space-y-1.5 text-xs">
                 {FEATURES.map((f) => (
                   <div key={f} className="flex justify-between gap-2">
                     <dt className="text-muted-foreground">{getIndicator(f).label}</dt>
-                    <dd className="font-medium tabular-nums">{formatValue(getIndicator(f).format, c.profile[f])}</dd>
+                    <dd className="tabular-nums">{formatValue(getIndicator(f).format, c.profile[f])}</dd>
                   </div>
                 ))}
-                <div className="flex justify-between gap-2 border-t border-border pt-1">
-                  <dt className="text-muted-foreground">Observaciones</dt>
-                  <dd className="font-medium tabular-nums">{c.profile.n}</dd>
-                </div>
               </dl>
             </div>
           ))}
         </div>
-        <ul className="mt-4 max-w-3xl list-disc space-y-1 pl-5 text-xs text-muted-foreground">
-          <li>
-            Los niveles son tramos de un gradiente continuo, no tipos nítidos de departamento: la separación entre
-            grupos es moderada (silhouette {panel.model.silhouette.toFixed(2)}).
-          </li>
-          <li>
-            Los departamentos más pobres muestran menos desempleo: allí casi todos trabajan, sobre todo en
-            agricultura, aunque con ingresos muy bajos.
-          </li>
-          <li>Fuente: {panel.source}. Datos procesados el {panel.generated}.</li>
-        </ul>
+
+        <p className="mt-7 max-w-xl text-xs leading-relaxed text-muted-foreground">
+          Los niveles son tramos de un gradiente continuo, no tipos nítidos de departamento (silhouette{" "}
+          {panel.model.silhouette.toFixed(2)}). Los departamentos más pobres muestran menos desempleo porque allí
+          casi todos trabajan, sobre todo en agricultura, aunque con ingresos muy bajos.
+        </p>
       </section>
 
-      <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <section>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-xl font-semibold tracking-tight">Probar el modelo</h2>
-            <p className="text-sm text-muted-foreground">Mueve los indicadores y consulta qué nivel les asigna.</p>
+            <h2 className="text-lg font-semibold tracking-tight">Probar el modelo</h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">Mueve los indicadores y consulta el nivel.</p>
           </div>
           <Select
             value={preset}
@@ -121,7 +109,7 @@ export default function ModelView() {
               setResult(null)
             }}
           >
-            <SelectTrigger className="h-9 w-full rounded-lg sm:w-60" aria-label="Partir de un departamento">
+            <SelectTrigger className="h-10 w-full rounded-full bg-card sm:w-60" aria-label="Partir de un departamento">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -132,50 +120,51 @@ export default function ModelView() {
           </Select>
         </div>
 
-        <div className="mt-5 grid gap-x-8 gap-y-4 md:grid-cols-2">
-          {FEATURES.map((f) => {
-            const indicator = getIndicator(f)
-            const [min, max, step] = RANGE[f]
-            return (
-              <label key={f} className="block">
-                <span className="flex justify-between text-sm">
-                  <span className="font-medium">{indicator.label}</span>
-                  <span className="tabular-nums text-muted-foreground">{formatValue(indicator.format, values[f])}</span>
-                </span>
-                <input
-                  type="range"
-                  min={min}
-                  max={max}
-                  step={step}
-                  value={values[f]}
-                  onChange={(e) => {
-                    setValues({ ...values, [f]: Number(e.target.value) })
-                    setResult(null)
-                  }}
-                  className="mt-2 w-full accent-[hsl(var(--primary))]"
-                />
-              </label>
-            )
-          })}
-        </div>
+        <div className="mt-5 rounded-2xl bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04)] ring-1 ring-border/70 sm:p-6">
+          <div className="grid gap-x-10 gap-y-5 md:grid-cols-2">
+            {FEATURES.map((f) => {
+              const indicator = getIndicator(f)
+              const [min, max, step] = RANGE[f]
+              return (
+                <label key={f} className="block">
+                  <span className="flex justify-between text-sm">
+                    <span>{indicator.label}</span>
+                    <span className="tabular-nums text-muted-foreground">{formatValue(indicator.format, values[f])}</span>
+                  </span>
+                  <input
+                    type="range"
+                    min={min}
+                    max={max}
+                    step={step}
+                    value={values[f]}
+                    onChange={(e) => {
+                      setValues({ ...values, [f]: Number(e.target.value) })
+                      setResult(null)
+                    }}
+                    className="mt-2 h-6 w-full accent-[hsl(var(--chart-1))]"
+                  />
+                </label>
+              )
+            })}
+          </div>
 
-        <div className="mt-6 flex flex-wrap items-center gap-4">
-          <button
-            onClick={submit}
-            disabled={loading}
-            className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-          >
-            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            Consultar nivel
-          </button>
-          {result && (
-            <p className="flex items-center gap-2 text-sm">
-              <span className="h-2.5 w-2.5 rounded-full" style={{ background: CLUSTER_COLORS[result.cluster] }} />
-              <span className="font-semibold">{result.cluster_name}</span>
-              <span className="text-muted-foreground">{result.description}</span>
-            </p>
-          )}
-          {error && <p className="text-sm text-rose-600 dark:text-rose-400">No se pudo consultar el modelo: {error}.</p>}
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+            <button
+              onClick={submit}
+              disabled={loading}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+            >
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              Consultar nivel
+            </button>
+            {result && (
+              <p className="flex items-center gap-2 text-sm">
+                <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: CLUSTER_COLORS[result.cluster] }} />
+                <span className="font-medium">{result.cluster_name}</span>
+              </p>
+            )}
+            {error && <p className="text-sm text-muted-foreground">No se pudo consultar el modelo: {error}.</p>}
+          </div>
         </div>
       </section>
     </div>

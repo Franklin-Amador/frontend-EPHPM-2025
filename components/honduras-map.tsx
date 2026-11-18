@@ -18,6 +18,13 @@ interface HondurasMapProps {
   onSelect: (code: number) => void
 }
 
+// Framing the mainland and the Bay Islands. The full extent includes the Swan Islands,
+// 150 km offshore, which would shrink the country to half the card.
+const MAINLAND: L.LatLngBoundsExpression = [
+  [12.95, -89.4],
+  [16.6, -83.1],
+]
+
 type DeptLayer = L.Path & { deptCode?: number; deptName?: string }
 
 export default function HondurasMap({ entries, selected, onSelect }: HondurasMapProps) {
@@ -63,7 +70,7 @@ export default function HondurasMap({ entries, selected, onSelect }: HondurasMap
     const fit = () => {
       if (!layerRef.current) return
       map.invalidateSize()
-      map.fitBounds(layerRef.current.getBounds(), { padding: [12, 12] })
+      map.fitBounds(MAINLAND, { padding: [4, 4] })
     }
 
     fetch("/gadm41_HND_1.json")

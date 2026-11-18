@@ -26,7 +26,7 @@ function ThemeToggle() {
     <button
       onClick={() => setTheme(dark ? "light" : "dark")}
       aria-label={dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
-      className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
     >
       {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </button>
@@ -38,45 +38,44 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-[1000] border-b border-border bg-background/80 backdrop-blur-lg">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
-          <div className="flex items-baseline gap-2">
-            <h1 className="text-base font-semibold tracking-tight">Honduras en cifras</h1>
-            <span className="hidden text-xs text-muted-foreground sm:inline">
-              EPHPM {YEARS[0]}–{LATEST_YEAR}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <nav className="flex rounded-xl bg-muted p-1" aria-label="Vistas">
-              {VIEWS.map((v) => (
-                <button
-                  key={v.id}
-                  onClick={() => setView(v.id)}
-                  aria-current={view === v.id ? "page" : undefined}
-                  className={cn(
-                    "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
-                    view === v.id ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {v.label}
-                </button>
-              ))}
-            </nav>
+      <header className="sticky top-0 z-[1000] bg-background/85 backdrop-blur-lg">
+        <div className="mx-auto max-w-5xl px-5 sm:px-8">
+          <div className="flex h-14 items-center justify-between gap-3">
+            <p className="text-[15px] font-semibold tracking-tight">Honduras en cifras</p>
             <ThemeToggle />
           </div>
+          {/* Underlined tabs: full width on a phone, no boxes competing with the content. */}
+          <nav className="-mb-px flex gap-6 border-b border-border" aria-label="Vistas">
+            {VIEWS.map((v) => (
+              <button
+                key={v.id}
+                onClick={() => {
+                  setView(v.id)
+                  window.scrollTo({ top: 0 })
+                }}
+                aria-current={view === v.id ? "page" : undefined}
+                className={cn(
+                  "border-b-2 pb-2.5 text-sm transition-colors",
+                  view === v.id
+                    ? "border-foreground font-medium text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {v.label}
+              </button>
+            ))}
+          </nav>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8 sm:px-8 sm:py-12">
         {view === "pais" && <NationalView />}
         {view === "departamentos" && <DepartmentsView />}
         {view === "modelo" && <ModelView />}
       </main>
 
-      <footer className="border-t border-border">
-        <div className="mx-auto max-w-7xl px-4 py-4 text-xs text-muted-foreground sm:px-6">
-          Fuente: {panel.source}. Cifras ponderadas con el factor de expansión de cada encuesta.
-        </div>
+      <footer className="mx-auto w-full max-w-5xl px-5 pb-10 text-xs leading-relaxed text-muted-foreground sm:px-8">
+        {panel.source}, {YEARS[0]}–{LATEST_YEAR}. Cifras ponderadas con el factor de expansión de cada encuesta.
       </footer>
     </div>
   )

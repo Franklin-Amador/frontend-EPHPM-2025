@@ -58,7 +58,7 @@ export default function TrendChart({ series, format, height = 280, highlightYear
 
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <LineChart data={data} margin={{ top: 18, right: 12, bottom: 0, left: 0 }}>
+      <LineChart data={data} margin={{ top: 18, right: 8, bottom: 0, left: -6 }}>
         <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
         {SLOTS.filter((s) => s.gap).map((s) => (
           <ReferenceLine
@@ -68,7 +68,7 @@ export default function TrendChart({ series, format, height = 280, highlightYear
             strokeOpacity={0.45}
             strokeDasharray="2 4"
             label={{
-              value: `sin datos ${s.gap}`,
+              value: s.gap,
               position: "top",
               fontSize: 10,
               fill: "hsl(var(--muted-foreground))",
@@ -79,8 +79,8 @@ export default function TrendChart({ series, format, height = 280, highlightYear
           <ReferenceArea
             x1={String(highlightYear)}
             x2={String(highlightYear)}
-            stroke="hsl(var(--primary))"
-            strokeOpacity={0.35}
+            stroke="hsl(var(--chart-1))"
+            strokeOpacity={0.3}
             strokeWidth={14}
           />
         )}
@@ -94,7 +94,7 @@ export default function TrendChart({ series, format, height = 280, highlightYear
           tickFormatter={(slot: string) => (slot.startsWith("gap") ? "" : `’${slot.slice(2)}`)}
         />
         <YAxis
-          width={44}
+          width={40}
           tick={axisTick}
           tickLine={false}
           axisLine={false}

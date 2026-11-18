@@ -1,8 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import dynamic from "next/dynamic"
-import { Info, MousePointerClick } from "lucide-react"
 import TrendChart from "@/components/trend-chart"
 import type { MapEntry } from "@/components/honduras-map"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -13,7 +12,6 @@ import {
   DEPARTMENTS,
   INDICATORS,
   LATEST_YEAR,
-  NO_DATA_COLOR,
   YEARS,
   colorFor,
   deptRow,
@@ -35,20 +33,51 @@ const HondurasMap = dynamic(() => import("@/components/honduras-map"), {
   loading: () => <div className="h-full w-full animate-pulse rounded-xl bg-muted" />,
 })
 
+const DETAIL_KEYS = ["tasa_pobreza", "tasa_pobreza_extrema", "ymophg_median", "tasa_desempleo"]
+const card = "rounded-2xl bg-card shadow-[0_1px_2px_rgb(0_0_0/0.04)] ring-1 ring-border/70"
+
+function YearPicker({ year, onChange }: { year: number; onChange: (y: number) => void }) {
+  const active = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    active.current?.scrollIntoView({ inline: "center", block: "nearest" })
+  }, [year])
+  return (
+    <div
+      className="no-scrollbar -mx-5 flex gap-1 overflow-x-auto px-5 sm:mx-0 sm:px-0"
+      role="tablist"
+      aria-label="Año de la encuesta"
+    >
+      {YEARS.map((y) => (
+        <button
+          key={y}
+          ref={y === year ? active : undefined}
+          role="tab"
+          aria-selected={y === year}
+          onClick={() => onChange(y)}
+          className={cn(
+            "shrink-0 rounded-full px-3 py-1.5 text-sm tabular-nums transition-colors",
+            y === year
+              ? "bg-foreground font-medium text-background"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground",
+          )}
+        >
+          {y}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 function Legend({ metric }: { metric: string }) {
   if (metric === CLUSTER_METRIC) {
     return (
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
         {CLUSTERS.map((c) => (
           <span key={c.id} className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full" style={{ background: CLUSTER_COLORS[c.id] }} />
-            {c.name}
+            <span className="h-2 w-2 rounded-full" style={{ background: CLUSTER_COLORS[c.id] }} />
+            {c.name.replace("Condiciones ", "")}
           </span>
         ))}
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full opacity-40" style={{ background: NO_DATA_COLOR }} />
-          Sin dato
-        </span>
       </div>
     )
   }
@@ -57,7 +86,7 @@ function Legend({ metric }: { metric: string }) {
   return (
     <div className="flex items-center gap-2 text-xs tabular-nums text-muted-foreground">
       {formatValue(indicator.format, min)}
-      <span className="h-2 w-32 rounded-full" style={{ background: rampCss }} />
+      <span className="h-1.5 w-24 rounded-full" style={{ background: rampCss }} />
       {formatValue(indicator.format, max)}
     </div>
   )
@@ -67,6 +96,14 @@ export default function DepartmentsView() {
   const [year, setYear] = useState(LATEST_YEAR)
   const [metric, setMetric] = useState(CLUSTER_METRIC)
   const [selected, setSelected] = useState<number | null>(null)
+  const [tab, setTab] = useState<"ranking" | "grid">("ranking")
+  const detailRef = useRef<HTMLElement>(null)
+
+  // Picking from the lists below the fold brings the detail card back into view.
+  const selectFromList = (code: number) => {
+    setSelected(code)
+    detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
 
   const rows = useMemo(() => rowsForYear(year), [year])
   const entries = useMemo(() => {
@@ -81,7 +118,7 @@ export default function DepartmentsView() {
 
   const indicator = metric === CLUSTER_METRIC ? null : getIndicator(metric)
   const metricAvailable = indicator ? indicator.years.includes(year) : panel.cluster_years.includes(year)
-  // The ranking and the detail chart need a numeric indicator; fall back to poverty for the level view.
+  // The ranking and the detail chart need a number; the level view falls back to poverty.
   const chartIndicator = indicator ?? getIndicator("tasa_pobreza")
 
   const ranking = rows
@@ -94,100 +131,78 @@ export default function DepartmentsView() {
   const national = nationalRow(year)
 
   return (
-    <div className="flex flex-col gap-4">
-      <section className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
-        <div className="flex flex-wrap gap-1" role="tablist" aria-label="Año de la encuesta">
-          {YEARS.map((y) => (
-            <button
-              key={y}
-              role="tab"
-              aria-selected={y === year}
-              onClick={() => setYear(y)}
-              className={cn(
-                "shrink-0 rounded-lg px-2.5 py-1.5 text-sm font-medium tabular-nums transition-colors",
-                y === year ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground",
-              )}
-            >
-              {y}
-            </button>
-          ))}
+    <div className="flex flex-col gap-6 sm:gap-8">
+      <section className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Departamentos</h1>
+          <Select value={metric} onValueChange={setMetric}>
+            <SelectTrigger className="h-10 w-full rounded-full bg-card sm:w-64" aria-label="Qué mostrar en el mapa">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={CLUSTER_METRIC}>Nivel de condiciones de vida</SelectItem>
+              {INDICATORS.map((i) => (
+                <SelectItem key={i.key} value={i.key}>{i.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={metric} onValueChange={setMetric}>
-          <SelectTrigger className="h-9 w-full rounded-lg sm:w-64" aria-label="Qué mostrar en el mapa">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={CLUSTER_METRIC}>Nivel de condiciones de vida</SelectItem>
-            {INDICATORS.map((i) => (
-              <SelectItem key={i.key} value={i.key}>{i.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <YearPicker year={year} onChange={setYear} />
       </section>
 
-      <div className="grid gap-4 lg:grid-cols-5">
-        <section className="flex flex-col rounded-2xl border border-border bg-card p-4 lg:col-span-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-base font-semibold tracking-tight">
-              {indicator ? indicator.label : "Nivel de condiciones de vida"} · {year}
-            </h3>
-            <Legend metric={metric} />
-          </div>
-          <div className="mt-2 h-[320px] sm:h-[420px]">
+      <div className="grid gap-4 lg:grid-cols-5 lg:gap-5">
+        <section className={cn(card, "p-4 sm:p-5 lg:col-span-3")}>
+          <div className="h-[200px] sm:h-[380px]">
             <HondurasMap entries={entries} selected={selected} onSelect={setSelected} />
           </div>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <Legend metric={metric} />
+            <span className="text-xs text-muted-foreground">Toca un departamento</span>
+          </div>
           {!metricAvailable && (
-            <p className="mt-2 flex items-start gap-2 rounded-xl bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-300">
-              <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
               {indicator
                 ? `La base de ${year} no trae este indicador.`
-                : `La base de ${year} no incluye la medición de pobreza, así que ese año no tiene nivel asignado.`}
+                : `La base de ${year} no mide pobreza, así que ese año no tiene nivel asignado.`}
             </p>
           )}
-          {indicator?.note && (
-            <p className="mt-2 text-xs text-muted-foreground">{indicator.note}</p>
+          {indicator?.note && metricAvailable && (
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{indicator.note}</p>
           )}
         </section>
 
-        <section className="flex flex-col rounded-2xl border border-border bg-card p-4 lg:col-span-2">
+        <section ref={detailRef} className={cn(card, "scroll-mt-28 p-5 lg:col-span-2")}>
           {!dept ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 py-10 text-center">
-              <MousePointerClick className="h-6 w-6 text-muted-foreground" />
-              <p className="max-w-[16rem] text-sm text-muted-foreground">
-                Elige un departamento en el mapa o en la lista para ver su situación en {year} y su recorrido.
+            <div className="flex h-full min-h-[8rem] items-center justify-center">
+              <p className="max-w-[15rem] text-center text-sm leading-relaxed text-muted-foreground">
+                Elige un departamento para ver su situación en {year} y cómo ha cambiado.
               </p>
             </div>
           ) : (
             <>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs text-muted-foreground">{year}</p>
-                  <h3 className="text-xl font-semibold tracking-tight">{dept.name}</h3>
-                </div>
-                {selectedRow && selectedRow.cluster !== null && (
-                  <span
-                    className="rounded-full px-2.5 py-1 text-xs font-medium text-white"
-                    style={{ background: CLUSTER_COLORS[selectedRow.cluster] }}
-                  >
-                    {CLUSTERS[selectedRow.cluster].name}
-                  </span>
-                )}
-              </div>
+              <p className="text-xs text-muted-foreground">{year}</p>
+              <h2 className="text-xl font-semibold tracking-tight">{dept.name}</h2>
+              {selectedRow && selectedRow.cluster !== null && (
+                <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <span className="h-2 w-2 rounded-full" style={{ background: CLUSTER_COLORS[selectedRow.cluster] }} />
+                  {CLUSTERS[selectedRow.cluster].name}
+                </p>
+              )}
 
               {!selectedRow ? (
-                <p className="mt-6 text-sm text-muted-foreground">
+                <p className="mt-5 text-sm text-muted-foreground">
                   La encuesta de {year} no tiene muestra en {dept.name}.
                 </p>
               ) : (
-                <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3">
-                  {["tasa_pobreza", "tasa_pobreza_extrema", "ymophg_median", "tasa_desempleo", "tasa_dependencia", "totper_mean"].map((key) => {
+                <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-4">
+                  {DETAIL_KEYS.map((key) => {
                     const i = getIndicator(key)
                     return (
                       <div key={key}>
                         <dt className="text-xs text-muted-foreground">{i.label}</dt>
-                        <dd className="text-base font-semibold tabular-nums">{formatValue(i.format, selectedRow[key])}</dd>
+                        <dd className="mt-0.5 text-lg font-semibold tabular-nums">{formatValue(i.format, selectedRow[key])}</dd>
                         <dd className="text-[11px] tabular-nums text-muted-foreground">
-                          País: {formatValue(i.format, national?.[key])}
+                          país {formatValue(i.format, national?.[key])}
                         </dd>
                       </div>
                     )
@@ -195,16 +210,18 @@ export default function DepartmentsView() {
                 </dl>
               )}
 
-              <div className="mt-5 border-t border-border pt-4">
-                <p className="text-xs font-medium text-muted-foreground">{chartIndicator.label} en el tiempo</p>
+              <div className="mt-6">
+                <p className="text-xs text-muted-foreground">
+                  {chartIndicator.label} en el tiempo · línea punteada: país
+                </p>
                 <TrendChart
                   format={chartIndicator.format}
-                  height={190}
+                  height={170}
                   highlightYear={year}
                   series={[
                     {
                       name: dept.name,
-                      color: "hsl(var(--primary))",
+                      color: "hsl(var(--chart-1))",
                       values: Object.fromEntries(rowsForDepartment(dept.code).map((r) => [r.anio, r[chartIndicator.key]])),
                     },
                     {
@@ -216,10 +233,9 @@ export default function DepartmentsView() {
                   ]}
                 />
               </div>
-              {selectedRow && (
-                <p className="mt-2 text-[11px] text-muted-foreground">
-                  Muestra: {selectedRow.n_hogares.toLocaleString("es-HN")} hogares.
-                  {selectedRow.n_hogares < 150 && " Con tan pocos hogares, los cambios de un año a otro pueden ser ruido."}
+              {selectedRow && selectedRow.n_hogares < 150 && (
+                <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                  Muestra pequeña ({selectedRow.n_hogares} hogares): los cambios de un año a otro pueden ser ruido.
                 </p>
               )}
             </>
@@ -227,54 +243,66 @@ export default function DepartmentsView() {
         </section>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-5">
-        <section className="rounded-2xl border border-border bg-card p-4 lg:col-span-2">
-          <h3 className="text-base font-semibold tracking-tight">{chartIndicator.label} por departamento · {year}</h3>
-          {ranking.length === 0 ? (
+      <section>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold tracking-tight">
+            {tab === "ranking" ? `${chartIndicator.label} en ${year}` : "Año por año"}
+          </h2>
+          <div className="flex rounded-full bg-muted p-0.5 text-xs">
+            {([["ranking", "Ranking"], ["grid", "Año por año"]] as const).map(([id, label]) => (
+              <button
+                key={id}
+                onClick={() => setTab(id)}
+                className={cn(
+                  "rounded-full px-3 py-1.5 transition-colors",
+                  tab === id ? "bg-card font-medium text-foreground shadow-sm" : "text-muted-foreground",
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {tab === "ranking" ? (
+          ranking.length === 0 ? (
             <p className="mt-4 text-sm text-muted-foreground">Sin datos para este año.</p>
           ) : (
-            <ul className="mt-3 flex flex-col gap-1">
+            <ul className="mt-4 sm:columns-2 sm:gap-x-10">
               {ranking.map((r) => {
                 const v = r[chartIndicator.key] as number
                 return (
-                  <li key={r.depto}>
+                  <li key={r.depto} className="break-inside-avoid">
                     <button
-                      onClick={() => setSelected(r.depto)}
+                      onClick={() => selectFromList(r.depto)}
                       className={cn(
-                        "grid w-full grid-cols-[7.5rem_1fr_4.5rem] items-center gap-2 rounded-lg px-2 py-1 text-left text-sm hover:bg-muted",
+                        "grid w-full grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1 rounded-lg px-2 py-2 text-left text-sm transition-colors hover:bg-muted",
                         r.depto === selected && "bg-muted",
                       )}
                     >
                       <span className="truncate">{getDepartment(r.depto).name}</span>
-                      <span className="h-2 overflow-hidden rounded-full bg-muted">
+                      <span className="tabular-nums text-muted-foreground">{formatValue(chartIndicator.format, v)}</span>
+                      <span className="col-span-2 h-1 overflow-hidden rounded-full bg-muted">
                         <span
                           className="block h-full rounded-full"
                           style={{ width: `${(v / rankingMax) * 100}%`, background: colorFor(metric, r) }}
                         />
-                      </span>
-                      <span className="text-right tabular-nums text-muted-foreground">
-                        {formatValue(chartIndicator.format, v)}
                       </span>
                     </button>
                   </li>
                 )
               })}
             </ul>
-          )}
-        </section>
-
-        <section className="rounded-2xl border border-border bg-card p-4 lg:col-span-3">
-          <h3 className="text-base font-semibold tracking-tight">
-            {indicator ? indicator.label : "Nivel"} de cada departamento, año por año
-          </h3>
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[560px] border-separate border-spacing-1 text-xs">
+          )
+        ) : (
+          <div className="mt-4">
+            <table className="w-full table-fixed border-separate border-spacing-[3px] text-[11px] sm:text-xs">
               <thead>
                 <tr className="text-muted-foreground">
-                  <th className="text-left font-medium" />
+                  <th className="w-[5.5rem] sm:w-36" />
                   {YEARS.map((y) => (
-                    <th key={y} className={cn("font-medium tabular-nums", y === year && "text-foreground")}>
-                      ’{String(y).slice(2)}
+                    <th key={y} className={cn("font-normal tabular-nums", y === year && "font-semibold text-foreground")}>
+                      {String(y).slice(2)}
                     </th>
                   ))}
                 </tr>
@@ -284,7 +312,7 @@ export default function DepartmentsView() {
                   <tr key={d.code}>
                     <th
                       className={cn(
-                        "whitespace-nowrap pr-2 text-left font-normal text-muted-foreground",
+                        "truncate pr-1 text-left font-normal text-muted-foreground",
                         d.code === selected && "font-semibold text-foreground",
                       )}
                     >
@@ -299,14 +327,14 @@ export default function DepartmentsView() {
                             title={`${d.name}, ${y}: ${labelFor(metric, row)}`}
                             aria-label={`${d.name}, ${y}: ${labelFor(metric, row)}`}
                             onClick={() => {
-                              setSelected(d.code)
                               setYear(y)
+                              selectFromList(d.code)
                             }}
                             className={cn(
-                              "block h-5 w-full min-w-6 rounded-[5px] transition-transform hover:scale-110",
-                              y === year && d.code === selected && "ring-2 ring-foreground ring-offset-1 ring-offset-card",
+                              "block h-4 w-full rounded-[4px] sm:h-5",
+                              y === year && d.code === selected && "ring-2 ring-foreground ring-offset-1 ring-offset-background",
                             )}
-                            style={{ background: colorFor(metric, row), opacity: has ? 1 : 0.18 }}
+                            style={{ background: colorFor(metric, row), opacity: has ? 1 : 0.15 }}
                           />
                         </td>
                       )
@@ -315,12 +343,12 @@ export default function DepartmentsView() {
                 ))}
               </tbody>
             </table>
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+              Cada celda es un departamento en un año; las tenues no tienen dato. Toca una para ir a ese año.
+            </p>
           </div>
-          <p className="mt-3 text-xs text-muted-foreground">
-            Las celdas tenues son años sin dato. Gracias a Dios e Islas de la Bahía solo tienen muestra en 2023 y 2024.
-          </p>
-        </section>
-      </div>
+        )}
+      </section>
     </div>
   )
 }
