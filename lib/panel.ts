@@ -153,20 +153,5 @@ export function labelFor(metric: string, row: DeptRow | undefined): string {
   return formatValue(getIndicator(metric).format, row[metric])
 }
 
-/** Years between the first and last survey that have no published microdata. */
-export const GAP_YEARS = (() => {
-  const gaps: number[] = []
-  for (let y = YEARS[0]; y <= LATEST_YEAR; y++) if (!YEARS.includes(y)) gaps.push(y)
-  return gaps
-})()
-
-/** Contiguous runs of missing years, e.g. [[2012, 2017], [2020, 2020]]. */
-export const GAP_RANGES = GAP_YEARS.reduce<[number, number][]>((acc, y) => {
-  const last = acc[acc.length - 1]
-  if (last && last[1] === y - 1) last[1] = y
-  else acc.push([y, y])
-  return acc
-}, [])
-
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "https://base-ephpm-julio-2025.vercel.app"

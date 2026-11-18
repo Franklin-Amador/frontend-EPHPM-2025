@@ -5,12 +5,13 @@ import {
   Line,
   LineChart,
   ReferenceArea,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts"
-import { GAP_RANGES, GAP_YEARS, LATEST_YEAR, YEARS, formatValue, type IndicatorFormat } from "@/lib/panel"
+import { YEARS, formatValue, type IndicatorFormat } from "@/lib/panel"
 
 export interface TrendSeries {
   name: string
@@ -35,54 +36,62 @@ function compact(format: IndicatorFormat, v: number): string {
   return v.toFixed(format === "years" ? 0 : 1)
 }
 
+// The axis shows only the years that have a survey, evenly spaced. Where the INE
+// published no microdata (2012-2017, 2020) a narrow break slot takes the place of the
+// missing years: the line stops there instead of implying a trend nobody measured.
+type Slot = { slot: string; year?: number; gap?: string }
+
+const SLOTS: Slot[] = YEARS.flatMap((year, i) => {
+  const prev = YEARS[i - 1]
+  const here: Slot = { slot: String(year), year }
+  if (prev === undefined || year - prev === 1) return [here]
+  const gap = year - prev === 2 ? String(prev + 1) : `${prev + 1}–${String(year - 1).slice(2)}`
+  return [{ slot: `gap-${prev}`, gap }, here]
+})
+
 export default function TrendChart({ series, format, height = 280, highlightYear }: TrendChartProps) {
-  // One row per calendar year. Years without a survey carry nulls so the line breaks
-  // instead of drawing a straight segment across a gap that was never measured.
-  const data = [...YEARS, ...GAP_YEARS]
-    .sort((a, b) => a - b)
-    .map((anio) => {
-      const row: Record<string, number | null> = { anio }
-      series.forEach((s, i) => (row[`s${i}`] = s.values[anio] ?? null))
-      return row
-    })
+  const data = SLOTS.map((s) => {
+    const row: Record<string, string | number | null> = { slot: s.slot }
+    series.forEach((line, i) => (row[`s${i}`] = s.year ? (line.values[s.year] ?? null) : null))
+    return row
+  })
 
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
+      <LineChart data={data} margin={{ top: 18, right: 12, bottom: 0, left: 0 }}>
         <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
-        {GAP_RANGES.map(([from, to]) => (
-          <ReferenceArea
-            key={from}
-            x1={from - 0.5}
-            x2={to + 0.5}
-            fill="hsl(var(--muted))"
-            fillOpacity={0.7}
-            stroke="none"
-            label={
-              to - from >= 2
-                ? { value: "sin microdatos", fontSize: 10, fill: "hsl(var(--muted-foreground))" }
-                : undefined
-            }
+        {SLOTS.filter((s) => s.gap).map((s) => (
+          <ReferenceLine
+            key={s.slot}
+            x={s.slot}
+            stroke="hsl(var(--muted-foreground))"
+            strokeOpacity={0.45}
+            strokeDasharray="2 4"
+            label={{
+              value: `sin datos ${s.gap}`,
+              position: "top",
+              fontSize: 10,
+              fill: "hsl(var(--muted-foreground))",
+            }}
           />
         ))}
         {highlightYear && (
           <ReferenceArea
-            x1={highlightYear - 0.4}
-            x2={highlightYear + 0.4}
-            fill="hsl(var(--primary))"
-            fillOpacity={0.1}
-            stroke="none"
+            x1={String(highlightYear)}
+            x2={String(highlightYear)}
+            stroke="hsl(var(--primary))"
+            strokeOpacity={0.35}
+            strokeWidth={14}
           />
         )}
         <XAxis
-          dataKey="anio"
-          type="number"
-          domain={[YEARS[0] - 0.5, LATEST_YEAR + 0.5]}
-          ticks={YEARS}
+          dataKey="slot"
+          type="category"
+          interval={0}
           tick={axisTick}
           tickLine={false}
           axisLine={{ stroke: "hsl(var(--border))" }}
-          tickFormatter={(y: number) => `’${String(y).slice(2)}`}
+          tickFormatter={(slot: string) => (slot.startsWith("gap") ? "" : `’${slot.slice(2)}`)}
         />
         <YAxis
           width={44}
