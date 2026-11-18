@@ -1,128 +1,81 @@
 "use client"
 
-import { useState } from "react"
-import dynamic from "next/dynamic"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import DepartmentPanel from "@/components/department-panel"
-import PredictionForm from "@/components/prediction-form"
-import ClusterLegend from "@/components/cluster-legend"
-import ModelInfo from "@/components/model-info"
-import type { DepartmentData } from "@/lib/departments-data"
-import { Map, Brain, Info, BarChart3 } from "lucide-react"
+import { useEffect, useState } from "react"
+import { useTheme } from "next-themes"
+import { Moon, Sun } from "lucide-react"
+import NationalView from "@/components/national-view"
+import DepartmentsView from "@/components/departments-view"
+import ModelView from "@/components/model-view"
+import { LATEST_YEAR, YEARS, panel } from "@/lib/panel"
+import { cn } from "@/lib/utils"
 
-const HondurasMap = dynamic(() => import("@/components/honduras-map"), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-full w-full items-center justify-center bg-muted/50 rounded-xl">
-      <div className="flex flex-col items-center gap-3">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-muted-foreground text-sm">Cargando mapa...</p>
-      </div>
-    </div>
-  ),
-})
+const VIEWS = [
+  { id: "pais", label: "País" },
+  { id: "departamentos", label: "Departamentos" },
+  { id: "modelo", label: "Modelo" },
+] as const
+
+type ViewId = (typeof VIEWS)[number]["id"]
+
+function ThemeToggle() {
+  const { resolvedTheme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  const dark = mounted && resolvedTheme === "dark"
+  return (
+    <button
+      onClick={() => setTheme(dark ? "light" : "dark")}
+      aria-label={dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
+      className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+    >
+      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </button>
+  )
+}
 
 export default function HomePage() {
-  const [selectedDepartment, setSelectedDepartment] =
-    useState<DepartmentData | null>(null)
+  const [view, setView] = useState<ViewId>("pais")
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-screen-2xl items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <BarChart3 className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-base font-bold tracking-tight text-card-foreground sm:text-lg">
-                EPHPM Honduras
-              </h1>
-              <p className="hidden text-xs text-muted-foreground sm:block">
-                Dashboard de Indicadores por Departamento
-              </p>
-              <span>Datos: Encuesta Permanente de Hogares (EPHPM)</span>
-            </div>
+    <div className="flex min-h-screen flex-col">
+      <header className="sticky top-0 z-[1000] border-b border-border bg-background/80 backdrop-blur-lg">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
+          <div className="flex items-baseline gap-2">
+            <h1 className="text-base font-semibold tracking-tight">Honduras en cifras</h1>
+            <span className="hidden text-xs text-muted-foreground sm:inline">
+              EPHPM {YEARS[0]}–{LATEST_YEAR}
+            </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              KMeans ONNX
-            </span>
-            <span className="hidden rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground sm:inline-flex">
-              4 clusters
-            </span>
+            <nav className="flex rounded-xl bg-muted p-1" aria-label="Vistas">
+              {VIEWS.map((v) => (
+                <button
+                  key={v.id}
+                  onClick={() => setView(v.id)}
+                  aria-current={view === v.id ? "page" : undefined}
+                  className={cn(
+                    "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+                    view === v.id ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {v.label}
+                </button>
+              ))}
+            </nav>
+            <ThemeToggle />
           </div>
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="mx-auto flex w-full max-w-screen-2xl flex-1 flex-col gap-4 p-4 lg:flex-row lg:gap-6 lg:p-6 mt-4">
-        {/* Map section */}
-        <section className="flex flex-col gap-3 lg:w-[62%] xl:w-2/3">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-sm font-semibold text-foreground">
-              Mapa de Departamentos
-            </h2>
-            <ClusterLegend />
-          </div>
-          <div className="h-[350px] overflow-hidden rounded-xl border border-border shadow-sm sm:h-[420px] lg:h-[calc(100vh-170px)]">
-            <HondurasMap
-              onSelectDepartment={setSelectedDepartment}
-              selectedDepartment={selectedDepartment}
-            />
-          </div>
-        </section>
-
-        {/* Sidebar */}
-        <aside className="flex flex-col lg:w-[38%] xl:w-1/3">
-          <Tabs defaultValue="datos" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 rounded-xl bg-muted/70 p-1">
-              <TabsTrigger
-                value="datos"
-                className="flex items-center gap-1.5 rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm"
-              >
-                <Map className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Datos</span>
-                <span className="sm:hidden">Datos</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="predictor"
-                className="flex items-center gap-1.5 rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm"
-              >
-                <Brain className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Predictor</span>
-                <span className="sm:hidden">ML</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="info"
-                className="flex items-center gap-1.5 rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm"
-              >
-                <Info className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Modelo</span>
-                <span className="sm:hidden">Info</span>
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="datos" className="mt-4">
-              <DepartmentPanel department={selectedDepartment} />
-            </TabsContent>
-
-            <TabsContent value="predictor" className="mt-4">
-              <PredictionForm selectedDepartment={selectedDepartment} />
-            </TabsContent>
-
-            <TabsContent value="info" className="mt-4">
-              <ModelInfo />
-            </TabsContent>
-          </Tabs>
-        </aside>
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
+        {view === "pais" && <NationalView />}
+        {view === "departamentos" && <DepartmentsView />}
+        {view === "modelo" && <ModelView />}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border bg-card/50 px-4 py-3 sm:px-6">
-        <div className="mx-auto flex max-w-screen-2xl flex-col items-center justify-between gap-1 text-xs text-muted-foreground sm:flex-row">
-   
+      <footer className="border-t border-border">
+        <div className="mx-auto max-w-7xl px-4 py-4 text-xs text-muted-foreground sm:px-6">
+          Fuente: {panel.source}. Cifras ponderadas con el factor de expansión de cada encuesta.
         </div>
       </footer>
     </div>

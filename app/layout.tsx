@@ -1,20 +1,23 @@
 import React from "react"
 import type { Metadata, Viewport } from "next"
-import { Inter, JetBrains_Mono } from "next/font/google"
+import { Inter } from "next/font/google"
+import { ThemeProvider } from "@/components/theme-provider"
 
 import "./globals.css"
 
-const _inter = Inter({ subsets: ["latin"] })
-const _jetbrainsMono = JetBrains_Mono({ subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata: Metadata = {
-  title: "EPHPM Honduras - Dashboard Socioeconómico",
+  title: "Honduras en cifras · EPHPM",
   description:
-    "Visualización interactiva de indicadores socioeconómicos por departamento de Honduras con predicción de clusters mediante Machine Learning.",
+    "Pobreza, ingreso, empleo y hogares en Honduras por año y por departamento, a partir de la Encuesta Permanente de Hogares de Propósitos Múltiples del INE.",
 }
 
 export const viewport: Viewport = {
-  themeColor: "#1565c0",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b0d12" },
+  ],
 }
 
 export default function RootLayout({
@@ -23,8 +26,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es">
-      <body className="font-sans antialiased">{children}</body>
+    <html lang="es" suppressHydrationWarning>
+      <body className={`${inter.variable} font-sans antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   )
 }
