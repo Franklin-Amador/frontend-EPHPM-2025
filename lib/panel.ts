@@ -40,6 +40,18 @@ interface Panel {
   missing_years_note: string
   indicators: Indicator[]
   model: { algorithm: string; k: number; features: string[]; silhouette: number; rows: number }
+  poverty_model: {
+    algorithm: string
+    n_features: number
+    train_years: number[]
+    valid_years: number[]
+    test_years: number[]
+    n_train: number
+    n_valid: number
+    n_test: number
+    test: Record<string, number>
+    factors: { label: string; odds: number }[]
+  }
   clusters: Cluster[]
   departments: Department[]
   national: NationalRow[]

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
+import ModelsSection from "@/components/models-section"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   API_URL,
@@ -218,16 +219,9 @@ export default function ModelView() {
           </div>
         </div>
 
-        <details className="mt-5 text-sm text-muted-foreground">
-          <summary className="cursor-pointer font-medium text-primary">Detalles técnicos</summary>
-          <p className="mt-2 max-w-2xl leading-relaxed">
-            Modelo {panel.model.algorithm} con {panel.model.k} grupos, entrenado con {panel.model.rows} observaciones
-            departamento-año y {FEATURES.length} indicadores estandarizados. Silhouette{" "}
-            {panel.model.silhouette.toFixed(2)}. Cifras ponderadas con el factor de expansión. Fuente: {panel.source}.
-            El ingreso se muestra en lempiras de cada año, sin descontar inflación.
-          </p>
-        </details>
       </section>
+
+      <ModelsSection />
     </div>
   )
 }

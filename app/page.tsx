@@ -72,13 +72,26 @@ export default function HomePage() {
       </header>
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 pb-10 sm:px-8 sm:py-10">
-        {view === "pais" && <NationalView />}
-        {view === "departamentos" && <DepartmentsView />}
-        {view === "modelo" && <ModelView />}
+        {/* key restarts the short slide-in each time the view changes */}
+        <div key={view} className="view-enter">
+          {view === "pais" && <NationalView />}
+          {view === "departamentos" && <DepartmentsView />}
+          {view === "modelo" && <ModelView />}
+        </div>
       </main>
 
-      <footer className="mx-auto w-full max-w-5xl px-5 pb-10 text-xs leading-relaxed text-muted-foreground sm:px-8">
-        {panel.source}, {YEARS[0]}–{LATEST_YEAR}. Cifras ponderadas con el factor de expansión de cada encuesta.
+      <footer className="mt-6 border-t border-border">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-2 px-5 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <p className="flex items-center gap-2 font-semibold text-foreground">
+            <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+            Honduras en cifras
+          </p>
+          <p className="text-xs leading-relaxed sm:text-right">
+            Datos: {panel.source}, {YEARS[0]}–{LATEST_YEAR}.
+            <br />
+            Cifras ponderadas con el factor de expansión de cada encuesta.
+          </p>
+        </div>
       </footer>
     </div>
   )

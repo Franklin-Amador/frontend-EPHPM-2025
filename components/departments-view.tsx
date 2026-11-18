@@ -356,7 +356,7 @@ export default function DepartmentsView() {
                     >
                       <span className="truncate">{getDepartment(r.depto).name}</span>
                       <span className="tabular-nums text-muted-foreground">{formatValue(chartIndicator.format, v)}</span>
-                      <span className="col-span-2 h-1 overflow-hidden rounded-full bg-muted">
+                      <span className="col-span-2 h-1.5 overflow-hidden rounded-full bg-muted">
                         <span
                           className="block h-full rounded-full"
                           style={{ width: `${(v / rankingMax) * 100}%`, background: colorFor(metric, r) }}

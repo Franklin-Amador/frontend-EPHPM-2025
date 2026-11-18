@@ -49,8 +49,8 @@ function Fact({
   detail: string
 }) {
   return (
-    <article className="flex flex-col gap-3 rounded-3xl bg-card p-5 shadow-sm ring-1 ring-border/60">
-      <span className={cn("flex h-11 w-11 items-center justify-center rounded-2xl", tint)}>
+    <article className="flex flex-col gap-3 rounded-3xl bg-card p-5 shadow-sm ring-1 ring-border/60 transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+      <span className={cn("flex h-12 w-12 items-center justify-center rounded-2xl", tint)}>
         <Icon className="h-5 w-5" />
       </span>
       <p className="text-3xl font-bold tracking-tight">{figure}</p>
